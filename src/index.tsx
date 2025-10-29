@@ -295,11 +295,12 @@ app.get('/', (c) => {
         <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css" rel="stylesheet">
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
-          .status-badge { @apply inline-block px-2 py-1 text-xs font-semibold rounded; }
-          .priority-badge { @apply inline-block px-2 py-1 text-xs font-semibold rounded; }
+          .status-badge { @apply inline-block px-2 py-1 text-xs font-semibold rounded-lg; }
+          .priority-badge { @apply inline-block px-2 py-1 text-xs font-semibold rounded-lg; }
+          .bg-gradient-renoir { background: linear-gradient(to bottom right, #E0F2F1, #C8E6C9); }
         </style>
     </head>
-    <body class="bg-gray-50">
+    <body class="bg-gradient-renoir">
         <div id="app"></div>
         
         <script src="https://cdn.jsdelivr.net/npm/axios@1.6.0/dist/axios.min.js"></script>

@@ -24,11 +24,11 @@ async function init() {
 // Show login page
 function showLogin() {
   document.getElementById('app').innerHTML = `
-    <div class="min-h-screen flex items-center justify-center">
-      <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <div class="min-h-screen flex items-center justify-center px-4">
+      <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div class="text-center mb-6">
-          <i class="fas fa-bug text-5xl text-blue-600 mb-2"></i>
-          <h1 class="text-3xl font-bold text-gray-800">Bug Tracker</h1>
+          <img src="/logo-light.png" alt="Renoir Consulting" class="h-20 mx-auto mb-4">
+          <h1 class="text-2xl font-bold text-gray-900">Issue Tracker</h1>
           <p class="text-gray-600 mt-2">Track bugs and features across your applications</p>
         </div>
         <form id="loginForm" class="space-y-4">
@@ -43,11 +43,11 @@ function showLogin() {
               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
           </div>
           <button type="submit" 
-            class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition">
+            class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
             <i class="fas fa-sign-in-alt mr-2"></i>Login
           </button>
         </form>
-        <div class="mt-4 p-3 bg-blue-50 rounded text-sm text-gray-700">
+        <div class="mt-4 p-3 bg-teal-50 rounded-lg text-sm text-gray-700">
           <strong>Demo accounts:</strong><br>
           admin / password123<br>
           john / password123<br>
@@ -90,15 +90,17 @@ async function handleLogout() {
 // Show dashboard
 function showDashboard() {
   document.getElementById('app').innerHTML = `
-    <nav class="bg-blue-600 text-white shadow-lg">
-      <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-          <i class="fas fa-bug text-2xl"></i>
-          <h1 class="text-xl font-bold">Bug & Feature Tracker</h1>
+    <nav class="bg-white shadow-md border-b-4 border-green-600">
+      <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <img src="/logo-light.png" alt="Renoir Consulting" class="h-16">
+          <div class="border-l-2 border-gray-300 pl-3">
+            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+          </div>
         </div>
         <div class="flex items-center space-x-4">
-          <span class="text-sm"><i class="fas fa-user mr-2"></i>${currentUser.full_name}</span>
-          <button onclick="handleLogout()" class="bg-blue-700 px-4 py-2 rounded hover:bg-blue-800 transition">
+          <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
+          <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
           </button>
         </div>
@@ -112,24 +114,24 @@ function showDashboard() {
       </div>
 
       <!-- Filters and Actions -->
-      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
           <input type="text" id="filterApp" placeholder="Filter by application..." list="applicationList"
-            class="px-4 py-2 border border-gray-300 rounded-lg">
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
           <datalist id="applicationList"></datalist>
-          <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg">
+          <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
             <option value="">All Statuses</option>
             <option value="open">Open</option>
             <option value="in_progress">In Progress</option>
             <option value="resolved">Resolved</option>
             <option value="closed">Closed</option>
           </select>
-          <select id="filterType" class="px-4 py-2 border border-gray-300 rounded-lg">
+          <select id="filterType" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
             <option value="">All Types</option>
             <option value="bug">Bug</option>
             <option value="feature">Feature</option>
           </select>
-          <select id="filterPriority" class="px-4 py-2 border border-gray-300 rounded-lg">
+          <select id="filterPriority" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
             <option value="">All Priorities</option>
             <option value="critical">Critical</option>
             <option value="high">High</option>
@@ -137,14 +139,14 @@ function showDashboard() {
             <option value="low">Low</option>
           </select>
           <button onclick="showCreateIssueModal()" 
-            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md">
             <i class="fas fa-plus mr-2"></i>New Issue
           </button>
         </div>
       </div>
 
       <!-- Issues Table -->
-      <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full">
             <thead class="bg-gray-100">
@@ -207,34 +209,34 @@ async function loadStats() {
     const stats = response.data;
 
     document.getElementById('statsCards').innerHTML = `
-      <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-600 text-sm">Total Issues</p>
-            <p class="text-3xl font-bold text-gray-800">${stats.total_issues || 0}</p>
+            <p class="text-3xl font-bold text-gray-900">${stats.total_issues || 0}</p>
           </div>
-          <i class="fas fa-clipboard-list text-4xl text-blue-600"></i>
+          <i class="fas fa-clipboard-list text-4xl text-green-600"></i>
         </div>
       </div>
-      <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-teal-600">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-600 text-sm">Open Issues</p>
             <p class="text-3xl font-bold text-orange-600">${stats.open_issues || 0}</p>
           </div>
-          <i class="fas fa-folder-open text-4xl text-orange-600"></i>
+          <i class="fas fa-folder-open text-4xl text-teal-600"></i>
         </div>
       </div>
-      <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-600 text-sm">In Progress</p>
             <p class="text-3xl font-bold text-yellow-600">${stats.in_progress_issues || 0}</p>
           </div>
-          <i class="fas fa-spinner text-4xl text-yellow-600"></i>
+          <i class="fas fa-spinner text-4xl text-yellow-500"></i>
         </div>
       </div>
-      <div class="bg-white rounded-lg shadow-lg p-6">
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-600">
         <div class="flex items-center justify-between">
           <div>
             <p class="text-gray-600 text-sm">Critical</p>
@@ -299,8 +301,8 @@ async function loadIssues() {
         <td class="px-4 py-3 text-sm">${issue.application_name}</td>
         <td class="px-4 py-3 text-sm text-gray-600">${issue.affected_area || '-'}</td>
         <td class="px-4 py-3">
-          <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded ${
-            issue.type === 'bug' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+          <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${
+            issue.type === 'bug' ? 'bg-red-100 text-red-800' : 'bg-teal-100 text-teal-800'
           }">
             <i class="fas ${issue.type === 'bug' ? 'fa-bug' : 'fa-star'} mr-1"></i>
             ${issue.type}
@@ -315,10 +317,10 @@ async function loadIssues() {
         <td class="px-4 py-3 text-sm">${issue.expected_completion_date ? new Date(issue.expected_completion_date).toLocaleDateString() : '-'}</td>
         <td class="px-4 py-3 text-sm">${issue.assigned_to_name || 'Unassigned'}</td>
         <td class="px-4 py-3">
-          <button onclick="showEditIssueModal(${issue.id})" class="text-blue-600 hover:text-blue-800 mr-2">
+          <button onclick="showEditIssueModal(${issue.id})" class="text-green-600 hover:text-green-800 mr-3 transition" title="Edit">
             <i class="fas fa-edit"></i>
           </button>
-          <button onclick="deleteIssue(${issue.id})" class="text-red-600 hover:text-red-800">
+          <button onclick="deleteIssue(${issue.id})" class="text-red-600 hover:text-red-800 transition" title="Delete">
             <i class="fas fa-trash"></i>
           </button>
         </td>
@@ -332,12 +334,12 @@ async function loadIssues() {
 // Helper functions for badges
 function getStatusBadge(status) {
   const colors = {
-    open: 'bg-orange-100 text-orange-800',
+    open: 'bg-teal-100 text-teal-800',
     in_progress: 'bg-yellow-100 text-yellow-800',
     resolved: 'bg-green-100 text-green-800',
     closed: 'bg-gray-100 text-gray-800'
   };
-  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded ${colors[status]}">${status.replace('_', ' ')}</span>`;
+  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${colors[status]}">${status.replace('_', ' ')}</span>`;
 }
 
 function getPriorityBadge(priority) {
@@ -347,7 +349,7 @@ function getPriorityBadge(priority) {
     medium: 'bg-yellow-100 text-yellow-800',
     low: 'bg-green-100 text-green-800'
   };
-  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded ${colors[priority]}">${priority}</span>`;
+  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${colors[priority]}">${priority}</span>`;
 }
 
 // Show create issue modal
@@ -419,10 +421,10 @@ function showCreateIssueModal() {
             </div>
           </div>
           <div class="flex justify-end space-x-4 pt-4">
-            <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+            <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
               Cancel
             </button>
-            <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
               <i class="fas fa-save mr-2"></i>Create Issue
             </button>
           </div>
@@ -535,10 +537,10 @@ async function showEditIssueModal(issueId) {
               </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
-              <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">
+              <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
                 Cancel
               </button>
-              <button type="submit" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
                 <i class="fas fa-save mr-2"></i>Save Changes
               </button>
             </div>
