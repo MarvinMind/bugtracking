@@ -304,8 +304,8 @@ The application follows Renoir Consulting's brand guidelines:
 - Border Accents: Green and teal border highlights
 
 **Logos:**
-- Light logo: `/logo-light.png` (colored, for white backgrounds)
-- Dark logo: `/logo-dark.png` (white text, for dark backgrounds)
+- Light logo: `/static/logo-light.jpg` (colored, for white backgrounds)
+- Dark logo: `/static/logo-dark.jpg` (white text, for dark backgrounds)
 
 ## 🎨 Demo Data
 
