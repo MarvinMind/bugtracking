@@ -2,6 +2,8 @@
 let currentUser = null;
 let applicationNames = [];
 let users = [];
+let allUsers = []; // For admin panel
+let currentView = 'dashboard'; // dashboard or admin
 let currentFilter = {
   application_name: '',
   status: '',
@@ -99,6 +101,16 @@ function showDashboard() {
           </div>
         </div>
         <div class="flex items-center space-x-4">
+          <button onclick="showDashboard(); currentView='dashboard'; loadDashboardData();" 
+            class="px-4 py-2 text-green-600 border-b-2 border-green-600 font-semibold">
+            <i class="fas fa-tasks mr-2"></i>Issues
+          </button>
+          ${currentUser.role === 'admin' ? `
+            <button onclick="showAdminPanel()" 
+              class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+              <i class="fas fa-users-cog mr-2"></i>Admin
+            </button>
+          ` : ''}
           <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
           <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
@@ -138,10 +150,12 @@ function showDashboard() {
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
-          <button onclick="showCreateIssueModal()" 
-            class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md">
-            <i class="fas fa-plus mr-2"></i>New Issue
-          </button>
+          ${currentUser.permissions.can_create_issues ? `
+            <button onclick="showCreateIssueModal()" 
+              class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md">
+              <i class="fas fa-plus mr-2"></i>New Issue
+            </button>
+          ` : '<div></div>'}
         </div>
       </div>
 
@@ -317,12 +331,17 @@ async function loadIssues() {
         <td class="px-4 py-3 text-sm">${issue.expected_completion_date ? new Date(issue.expected_completion_date).toLocaleDateString() : '-'}</td>
         <td class="px-4 py-3 text-sm">${issue.assigned_to_name || 'Unassigned'}</td>
         <td class="px-4 py-3">
-          <button onclick="showEditIssueModal(${issue.id})" class="text-green-600 hover:text-green-800 mr-3 transition" title="Edit">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button onclick="deleteIssue(${issue.id})" class="text-red-600 hover:text-red-800 transition" title="Delete">
-            <i class="fas fa-trash"></i>
-          </button>
+          ${currentUser.permissions.can_edit_issues ? `
+            <button onclick="showEditIssueModal(${issue.id})" class="text-green-600 hover:text-green-800 mr-3 transition" title="Edit">
+              <i class="fas fa-edit"></i>
+            </button>
+          ` : ''}
+          ${currentUser.permissions.can_delete_issues ? `
+            <button onclick="deleteIssue(${issue.id})" class="text-red-600 hover:text-red-800 transition" title="Delete">
+              <i class="fas fa-trash"></i>
+            </button>
+          ` : ''}
+          ${!currentUser.permissions.can_edit_issues && !currentUser.permissions.can_delete_issues ? '<span class="text-gray-400 text-sm">View only</span>' : ''}
         </td>
       </tr>
     `).join('');
@@ -597,6 +616,390 @@ async function deleteIssue(issueId) {
 function closeModal(event) {
   if (!event || event.target === event.currentTarget) {
     document.getElementById('modalContainer').innerHTML = '';
+  }
+}
+
+// ==================== ADMIN PANEL FUNCTIONS ====================
+
+// Switch to admin view
+function showAdminPanel() {
+  currentView = 'admin';
+  document.getElementById('app').innerHTML = `
+    <nav class="bg-white shadow-md border-b-4 border-green-600">
+      <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
+          <div class="border-l-2 border-gray-300 pl-3">
+            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button onclick="showDashboard(); currentView='dashboard'; loadDashboardData();" 
+            class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+            <i class="fas fa-tasks mr-2"></i>Issues
+          </button>
+          <button onclick="showAdminPanel()" 
+            class="px-4 py-2 text-green-600 border-b-2 border-green-600 font-semibold">
+            <i class="fas fa-users-cog mr-2"></i>Admin
+          </button>
+          <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
+          <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-2xl font-bold text-gray-900"><i class="fas fa-users-cog mr-2 text-green-600"></i>User Management</h2>
+          <button onclick="showCreateUserModal()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition shadow-md">
+            <i class="fas fa-user-plus mr-2"></i>Add User
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Username</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Full Name</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Email</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Permissions</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <!-- Users will be loaded here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Container -->
+    <div id="modalContainer"></div>
+  `;
+
+  loadAllUsers();
+}
+
+// Load all users for admin panel
+async function loadAllUsers() {
+  try {
+    const response = await axios.get('/api/admin/users');
+    allUsers = response.data;
+
+    const tbody = document.getElementById('usersTableBody');
+    if (allUsers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-gray-500">No users found</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = allUsers.map(user => `
+      <tr class="border-t hover:bg-gray-50">
+        <td class="px-4 py-3 text-sm font-medium">${user.username}</td>
+        <td class="px-4 py-3 text-sm">${user.full_name}</td>
+        <td class="px-4 py-3 text-sm">${user.email}</td>
+        <td class="px-4 py-3">
+          <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${
+            user.role === 'admin' ? 'bg-green-100 text-green-800' : 
+            user.role === 'user' ? 'bg-blue-100 text-blue-800' : 
+            'bg-gray-100 text-gray-800'
+          }">
+            ${user.role}
+          </span>
+        </td>
+        <td class="px-4 py-3 text-xs">
+          ${user.can_create_issues ? '<span class="text-green-600" title="Can create issues"><i class="fas fa-plus-circle"></i></span>' : '<span class="text-gray-300"><i class="fas fa-plus-circle"></i></span>'}
+          ${user.can_edit_issues ? '<span class="text-blue-600 ml-2" title="Can edit issues"><i class="fas fa-edit"></i></span>' : '<span class="text-gray-300 ml-2"><i class="fas fa-edit"></i></span>'}
+          ${user.can_delete_issues ? '<span class="text-red-600 ml-2" title="Can delete issues"><i class="fas fa-trash"></i></span>' : '<span class="text-gray-300 ml-2"><i class="fas fa-trash"></i></span>'}
+          ${user.can_resolve_issues ? '<span class="text-purple-600 ml-2" title="Can resolve issues"><i class="fas fa-check-circle"></i></span>' : '<span class="text-gray-300 ml-2"><i class="fas fa-check-circle"></i></span>'}
+        </td>
+        <td class="px-4 py-3">
+          <button onclick="showEditUserModal(${user.id})" class="text-green-600 hover:text-green-800 mr-3 transition" title="Edit">
+            <i class="fas fa-user-edit"></i>
+          </button>
+          ${user.id !== currentUser.id ? `
+            <button onclick="deleteUser(${user.id})" class="text-red-600 hover:text-red-800 transition" title="Delete">
+              <i class="fas fa-user-times"></i>
+            </button>
+          ` : ''}
+        </td>
+      </tr>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading users:', error);
+    alert('Error loading users: ' + (error.response?.data?.error || error.message));
+  }
+}
+
+// Show create user modal
+function showCreateUserModal() {
+  const modal = document.getElementById('modalContainer');
+  modal.innerHTML = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeModal(event)">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center p-6 border-b">
+          <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-user-plus mr-2"></i>Create New User</h2>
+          <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        <form id="createUserForm" class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Username *</label>
+              <input type="text" id="new_username" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Password *</label>
+              <input type="password" id="new_password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label>
+              <input type="text" id="new_full_name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+              <input type="email" id="new_email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Role *</label>
+            <select id="new_role" required class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="togglePermissions(this.value, 'new')">
+              <option value="user">User</option>
+              <option value="viewer">Viewer</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+          <div id="new_permissions_section">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="checkbox" id="new_can_create_issues" checked class="mr-2">
+                <span class="text-sm">Can create issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="new_can_edit_issues" checked class="mr-2">
+                <span class="text-sm">Can edit issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="new_can_delete_issues" class="mr-2">
+                <span class="text-sm">Can delete issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="new_can_resolve_issues" class="mr-2">
+                <span class="text-sm">Can resolve/close issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="new_can_assign_issues" checked class="mr-2">
+                <span class="text-sm">Can assign issues to others</span>
+              </label>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-4 pt-4">
+            <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
+              <i class="fas fa-save mr-2"></i>Create User
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('createUserForm').addEventListener('submit', handleCreateUser);
+}
+
+// Handle create user
+async function handleCreateUser(e) {
+  e.preventDefault();
+  const formData = {
+    username: document.getElementById('new_username').value,
+    password: document.getElementById('new_password').value,
+    email: document.getElementById('new_email').value,
+    full_name: document.getElementById('new_full_name').value,
+    role: document.getElementById('new_role').value,
+    permissions: {
+      can_create_issues: document.getElementById('new_can_create_issues').checked,
+      can_edit_issues: document.getElementById('new_can_edit_issues').checked,
+      can_delete_issues: document.getElementById('new_can_delete_issues').checked,
+      can_resolve_issues: document.getElementById('new_can_resolve_issues').checked,
+      can_assign_issues: document.getElementById('new_can_assign_issues').checked
+    }
+  };
+
+  try {
+    await axios.post('/api/admin/users', formData);
+    closeModal();
+    loadAllUsers();
+  } catch (error) {
+    alert('Error creating user: ' + (error.response?.data?.error || error.message));
+  }
+}
+
+// Show edit user modal
+async function showEditUserModal(userId) {
+  const user = allUsers.find(u => u.id === userId);
+  if (!user) return;
+
+  const modal = document.getElementById('modalContainer');
+  modal.innerHTML = `
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeModal(event)">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center p-6 border-b">
+          <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-user-edit mr-2"></i>Edit User</h2>
+          <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-times text-2xl"></i>
+          </button>
+        </div>
+        <form id="editUserForm" class="p-6 space-y-4">
+          <input type="hidden" id="edit_user_id" value="${user.id}">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Username</label>
+              <input type="text" id="edit_username" value="${user.username}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Password (leave blank to keep current)</label>
+              <input type="password" id="edit_password" placeholder="••••••••" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input type="text" id="edit_full_name" value="${user.full_name}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" id="edit_email" value="${user.email}" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select id="edit_role" class="w-full px-4 py-2 border border-gray-300 rounded-lg" onchange="togglePermissions(this.value, 'edit')">
+              <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+              <option value="viewer" ${user.role === 'viewer' ? 'selected' : ''}>Viewer</option>
+              <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+            </select>
+          </div>
+          <div id="edit_permissions_section">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Permissions</label>
+            <div class="space-y-2">
+              <label class="flex items-center">
+                <input type="checkbox" id="edit_can_create_issues" ${user.can_create_issues ? 'checked' : ''} class="mr-2">
+                <span class="text-sm">Can create issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="edit_can_edit_issues" ${user.can_edit_issues ? 'checked' : ''} class="mr-2">
+                <span class="text-sm">Can edit issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="edit_can_delete_issues" ${user.can_delete_issues ? 'checked' : ''} class="mr-2">
+                <span class="text-sm">Can delete issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="edit_can_resolve_issues" ${user.can_resolve_issues ? 'checked' : ''} class="mr-2">
+                <span class="text-sm">Can resolve/close issues</span>
+              </label>
+              <label class="flex items-center">
+                <input type="checkbox" id="edit_can_assign_issues" ${user.can_assign_issues ? 'checked' : ''} class="mr-2">
+                <span class="text-sm">Can assign issues to others</span>
+              </label>
+            </div>
+          </div>
+          <div class="flex justify-end space-x-4 pt-4">
+            <button type="button" onclick="closeModal()" class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition">
+              Cancel
+            </button>
+            <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition shadow-md">
+              <i class="fas fa-save mr-2"></i>Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('editUserForm').addEventListener('submit', handleEditUser);
+  togglePermissions(user.role, 'edit');
+}
+
+// Toggle permissions based on role
+function togglePermissions(role, prefix) {
+  const permissionsSection = document.getElementById(`${prefix}_permissions_section`);
+  if (role === 'admin') {
+    // Admin gets all permissions, disable checkboxes
+    ['can_create_issues', 'can_edit_issues', 'can_delete_issues', 'can_resolve_issues', 'can_assign_issues'].forEach(perm => {
+      const checkbox = document.getElementById(`${prefix}_${perm}`);
+      if (checkbox) {
+        checkbox.checked = true;
+        checkbox.disabled = true;
+      }
+    });
+  } else {
+    // Enable all checkboxes for non-admin roles
+    ['can_create_issues', 'can_edit_issues', 'can_delete_issues', 'can_resolve_issues', 'can_assign_issues'].forEach(perm => {
+      const checkbox = document.getElementById(`${prefix}_${perm}`);
+      if (checkbox) {
+        checkbox.disabled = false;
+      }
+    });
+  }
+}
+
+// Handle edit user
+async function handleEditUser(e) {
+  e.preventDefault();
+  const userId = document.getElementById('edit_user_id').value;
+  const password = document.getElementById('edit_password').value;
+  
+  const formData = {
+    username: document.getElementById('edit_username').value,
+    email: document.getElementById('edit_email').value,
+    full_name: document.getElementById('edit_full_name').value,
+    role: document.getElementById('edit_role').value,
+    permissions: {
+      can_create_issues: document.getElementById('edit_can_create_issues').checked,
+      can_edit_issues: document.getElementById('edit_can_edit_issues').checked,
+      can_delete_issues: document.getElementById('edit_can_delete_issues').checked,
+      can_resolve_issues: document.getElementById('edit_can_resolve_issues').checked,
+      can_assign_issues: document.getElementById('edit_can_assign_issues').checked
+    }
+  };
+
+  // Only include password if it was changed
+  if (password) {
+    formData.password = password;
+  }
+
+  try {
+    await axios.put(`/api/admin/users/${userId}`, formData);
+    closeModal();
+    loadAllUsers();
+  } catch (error) {
+    alert('Error updating user: ' + (error.response?.data?.error || error.message));
+  }
+}
+
+// Delete user
+async function deleteUser(userId) {
+  if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+    return;
+  }
+
+  try {
+    await axios.delete(`/api/admin/users/${userId}`);
+    loadAllUsers();
+  } catch (error) {
+    alert('Error deleting user: ' + (error.response?.data?.error || error.message));
   }
 }
 

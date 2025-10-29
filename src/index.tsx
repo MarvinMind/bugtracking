@@ -26,7 +26,7 @@ const authMiddleware = async (c: any, next: any) => {
 
   // Check if session is valid
   const session = await c.env.DB.prepare(`
-    SELECT s.id, s.user_id, s.expires_at, u.username, u.email, u.full_name
+    SELECT s.id, s.user_id, s.expires_at, u.username, u.email, u.full_name, u.role
     FROM sessions s
     JOIN users u ON s.user_id = u.id
     WHERE s.id = ? AND s.expires_at > datetime('now')
@@ -66,7 +66,7 @@ app.post('/api/auth/login', async (c) => {
   const { username, password } = await c.req.json()
   
   const user = await c.env.DB.prepare(`
-    SELECT id, username, password, email, full_name
+    SELECT id, username, password, email, full_name, role
     FROM users
     WHERE username = ? AND password = ?
   `).bind(username, password).first()
@@ -91,7 +91,8 @@ app.post('/api/auth/login', async (c) => {
       id: user.id,
       username: user.username,
       email: user.email,
-      full_name: user.full_name
+      full_name: user.full_name,
+      role: user.role
     }
   })
 })
@@ -114,12 +115,169 @@ app.post('/api/auth/logout', async (c) => {
 // Check authentication status
 app.get('/api/auth/me', authMiddleware, async (c) => {
   const user = c.get('user')
+  
+  // Fetch full user permissions
+  const userData = await c.env.DB.prepare(`
+    SELECT role, can_create_issues, can_edit_issues, can_delete_issues, can_resolve_issues, can_assign_issues
+    FROM users WHERE id = ?
+  `).bind(user.user_id).first()
+  
   return c.json({
     id: user.user_id,
     username: user.username,
     email: user.email,
-    full_name: user.full_name
+    full_name: user.full_name,
+    role: userData?.role || 'user',
+    permissions: {
+      can_create_issues: userData?.can_create_issues === 1,
+      can_edit_issues: userData?.can_edit_issues === 1,
+      can_delete_issues: userData?.can_delete_issues === 1,
+      can_resolve_issues: userData?.can_resolve_issues === 1,
+      can_assign_issues: userData?.can_assign_issues === 1
+    }
   })
+})
+
+// ==================== Admin Middleware ====================
+
+const adminMiddleware = async (c: any, next: any) => {
+  const user = c.get('user')
+  
+  if (user.role !== 'admin') {
+    return c.json({ error: 'Admin access required' }, 403)
+  }
+  
+  await next()
+}
+
+// ==================== Admin User Management Routes ====================
+
+// Get all users (admin only)
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (c) => {
+  const result = await c.env.DB.prepare(`
+    SELECT id, username, email, full_name, role, 
+           can_create_issues, can_edit_issues, can_delete_issues, 
+           can_resolve_issues, can_assign_issues, created_at
+    FROM users 
+    ORDER BY created_at DESC
+  `).all()
+  
+  return c.json(result.results)
+})
+
+// Create new user (admin only)
+app.post('/api/admin/users', authMiddleware, adminMiddleware, async (c) => {
+  const { username, password, email, full_name, role, permissions } = await c.req.json()
+  
+  // Validate required fields
+  if (!username || !password || !email || !full_name) {
+    return c.json({ error: 'Missing required fields' }, 400)
+  }
+  
+  const result = await c.env.DB.prepare(`
+    INSERT INTO users (username, password, email, full_name, role, 
+                       can_create_issues, can_edit_issues, can_delete_issues,
+                       can_resolve_issues, can_assign_issues)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(
+    username, 
+    password, 
+    email, 
+    full_name, 
+    role || 'user',
+    permissions?.can_create_issues ? 1 : 0,
+    permissions?.can_edit_issues ? 1 : 0,
+    permissions?.can_delete_issues ? 1 : 0,
+    permissions?.can_resolve_issues ? 1 : 0,
+    permissions?.can_assign_issues ? 1 : 0
+  ).run()
+  
+  return c.json({ 
+    id: result.meta.last_row_id,
+    username,
+    email,
+    full_name,
+    role: role || 'user'
+  })
+})
+
+// Update user (admin only)
+app.put('/api/admin/users/:id', authMiddleware, adminMiddleware, async (c) => {
+  const id = c.req.param('id')
+  const { username, password, email, full_name, role, permissions } = await c.req.json()
+  
+  // Build update query based on provided fields
+  let query = 'UPDATE users SET '
+  const updates: string[] = []
+  const params: any[] = []
+  
+  if (username) {
+    updates.push('username = ?')
+    params.push(username)
+  }
+  if (password) {
+    updates.push('password = ?')
+    params.push(password)
+  }
+  if (email) {
+    updates.push('email = ?')
+    params.push(email)
+  }
+  if (full_name) {
+    updates.push('full_name = ?')
+    params.push(full_name)
+  }
+  if (role) {
+    updates.push('role = ?')
+    params.push(role)
+  }
+  if (permissions) {
+    if (permissions.can_create_issues !== undefined) {
+      updates.push('can_create_issues = ?')
+      params.push(permissions.can_create_issues ? 1 : 0)
+    }
+    if (permissions.can_edit_issues !== undefined) {
+      updates.push('can_edit_issues = ?')
+      params.push(permissions.can_edit_issues ? 1 : 0)
+    }
+    if (permissions.can_delete_issues !== undefined) {
+      updates.push('can_delete_issues = ?')
+      params.push(permissions.can_delete_issues ? 1 : 0)
+    }
+    if (permissions.can_resolve_issues !== undefined) {
+      updates.push('can_resolve_issues = ?')
+      params.push(permissions.can_resolve_issues ? 1 : 0)
+    }
+    if (permissions.can_assign_issues !== undefined) {
+      updates.push('can_assign_issues = ?')
+      params.push(permissions.can_assign_issues ? 1 : 0)
+    }
+  }
+  
+  updates.push('updated_at = datetime("now")')
+  query += updates.join(', ') + ' WHERE id = ?'
+  params.push(id)
+  
+  await c.env.DB.prepare(query).bind(...params).run()
+  
+  return c.json({ success: true })
+})
+
+// Delete user (admin only)
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (c) => {
+  const id = c.req.param('id')
+  const currentUser = c.get('user')
+  
+  // Prevent deleting yourself
+  if (parseInt(id) === currentUser.user_id) {
+    return c.json({ error: 'Cannot delete your own account' }, 400)
+  }
+  
+  await c.env.DB.prepare(`
+    DELETE FROM users WHERE id = ?
+  `).bind(id).run()
+  
+  return c.json({ success: true })
 })
 
 // ==================== Protected API Routes ====================
@@ -206,6 +364,13 @@ app.get('/api/issues/:id', authMiddleware, async (c) => {
 // Create new issue
 app.post('/api/issues', authMiddleware, async (c) => {
   const user = c.get('user')
+  
+  // Check permission
+  const userData = await c.env.DB.prepare(`SELECT can_create_issues FROM users WHERE id = ?`).bind(user.user_id).first()
+  if (userData?.can_create_issues !== 1) {
+    return c.json({ error: 'You do not have permission to create issues' }, 403)
+  }
+  
   const { application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date } = await c.req.json()
   
   const result = await c.env.DB.prepare(`
@@ -231,7 +396,21 @@ app.post('/api/issues', authMiddleware, async (c) => {
 // Update issue
 app.put('/api/issues/:id', authMiddleware, async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user')
   const { application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date } = await c.req.json()
+  
+  // Check permissions
+  const userData = await c.env.DB.prepare(`SELECT can_edit_issues, can_resolve_issues FROM users WHERE id = ?`).bind(user.user_id).first()
+  
+  // Check if user can edit
+  if (userData?.can_edit_issues !== 1) {
+    return c.json({ error: 'You do not have permission to edit issues' }, 403)
+  }
+  
+  // Check if user can resolve (when changing status to resolved or closed)
+  if ((status === 'resolved' || status === 'closed') && userData?.can_resolve_issues !== 1) {
+    return c.json({ error: 'You do not have permission to resolve/close issues' }, 403)
+  }
   
   await c.env.DB.prepare(`
     UPDATE issues 
@@ -245,6 +424,13 @@ app.put('/api/issues/:id', authMiddleware, async (c) => {
 // Delete issue
 app.delete('/api/issues/:id', authMiddleware, async (c) => {
   const id = c.req.param('id')
+  const user = c.get('user')
+  
+  // Check permission
+  const userData = await c.env.DB.prepare(`SELECT can_delete_issues FROM users WHERE id = ?`).bind(user.user_id).first()
+  if (userData?.can_delete_issues !== 1) {
+    return c.json({ error: 'You do not have permission to delete issues' }, 403)
+  }
   
   await c.env.DB.prepare(`
     DELETE FROM issues WHERE id = ?
