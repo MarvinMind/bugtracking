@@ -1,9 +1,9 @@
 // Global state
 let currentUser = null;
-let applications = [];
+let applicationNames = [];
 let users = [];
 let currentFilter = {
-  application_id: '',
+  application_name: '',
   status: '',
   type: '',
   priority: ''
@@ -114,9 +114,9 @@ function showDashboard() {
       <!-- Filters and Actions -->
       <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
         <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
-          <select id="filterApp" class="px-4 py-2 border border-gray-300 rounded-lg">
-            <option value="">All Applications</option>
-          </select>
+          <input type="text" id="filterApp" placeholder="Filter by application..." list="applicationList"
+            class="px-4 py-2 border border-gray-300 rounded-lg">
+          <datalist id="applicationList"></datalist>
           <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg">
             <option value="">All Statuses</option>
             <option value="open">Open</option>
@@ -152,9 +152,11 @@ function showDashboard() {
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Title</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Application</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Affected Area</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Type</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Priority</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Expected Completion</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Assigned To</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
               </tr>
@@ -172,8 +174,8 @@ function showDashboard() {
   `;
 
   // Add filter event listeners
-  document.getElementById('filterApp').addEventListener('change', (e) => {
-    currentFilter.application_id = e.target.value;
+  document.getElementById('filterApp').addEventListener('input', (e) => {
+    currentFilter.application_name = e.target.value;
     loadIssues();
   });
   document.getElementById('filterStatus').addEventListener('change', (e) => {
@@ -192,7 +194,7 @@ function showDashboard() {
 
 // Load dashboard data
 async function loadDashboardData() {
-  await loadApplications();
+  await loadApplicationNames();
   await loadUsers();
   await loadStats();
   await loadIssues();
@@ -247,21 +249,18 @@ async function loadStats() {
   }
 }
 
-// Load applications
-async function loadApplications() {
+// Load application names
+async function loadApplicationNames() {
   try {
     const response = await axios.get('/api/applications');
-    applications = response.data;
+    applicationNames = response.data.map(app => app.application_name);
     
-    const filterApp = document.getElementById('filterApp');
-    if (filterApp) {
-      const currentValue = filterApp.value;
-      filterApp.innerHTML = '<option value="">All Applications</option>' +
-        applications.map(app => `<option value="${app.id}">${app.name}</option>`).join('');
-      filterApp.value = currentValue;
+    const datalist = document.getElementById('applicationList');
+    if (datalist) {
+      datalist.innerHTML = applicationNames.map(name => `<option value="${name}">`).join('');
     }
   } catch (error) {
-    console.error('Error loading applications:', error);
+    console.error('Error loading application names:', error);
   }
 }
 
@@ -279,7 +278,7 @@ async function loadUsers() {
 async function loadIssues() {
   try {
     const params = new URLSearchParams();
-    if (currentFilter.application_id) params.append('application_id', currentFilter.application_id);
+    if (currentFilter.application_name) params.append('application_name', currentFilter.application_name);
     if (currentFilter.status) params.append('status', currentFilter.status);
     if (currentFilter.type) params.append('type', currentFilter.type);
     if (currentFilter.priority) params.append('priority', currentFilter.priority);
@@ -289,7 +288,7 @@ async function loadIssues() {
 
     const tbody = document.getElementById('issuesTableBody');
     if (issues.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
       return;
     }
 
@@ -298,6 +297,7 @@ async function loadIssues() {
         <td class="px-4 py-3 text-sm">#${issue.id}</td>
         <td class="px-4 py-3 text-sm font-medium">${issue.title}</td>
         <td class="px-4 py-3 text-sm">${issue.application_name}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${issue.affected_area || '-'}</td>
         <td class="px-4 py-3">
           <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded ${
             issue.type === 'bug' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
@@ -312,6 +312,7 @@ async function loadIssues() {
         <td class="px-4 py-3">
           ${getPriorityBadge(issue.priority)}
         </td>
+        <td class="px-4 py-3 text-sm">${issue.expected_completion_date ? new Date(issue.expected_completion_date).toLocaleDateString() : '-'}</td>
         <td class="px-4 py-3 text-sm">${issue.assigned_to_name || 'Unassigned'}</td>
         <td class="px-4 py-3">
           <button onclick="showEditIssueModal(${issue.id})" class="text-blue-600 hover:text-blue-800 mr-2">
@@ -354,7 +355,7 @@ function showCreateIssueModal() {
   const modal = document.getElementById('modalContainer');
   modal.innerHTML = `
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeModal(event)">
-      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4" onclick="event.stopPropagation()">
+      <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center p-6 border-b">
           <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-plus-circle mr-2"></i>Create New Issue</h2>
           <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
@@ -364,11 +365,13 @@ function showCreateIssueModal() {
         <form id="createIssueForm" class="p-6 space-y-4">
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Application *</label>
-              <select id="application_id" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                <option value="">Select Application</option>
-                ${applications.map(app => `<option value="${app.id}">${app.name}</option>`).join('')}
-              </select>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Application Name *</label>
+              <input type="text" id="application_name" required list="createApplicationList"
+                placeholder="e.g., Web Portal, Mobile App"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <datalist id="createApplicationList">
+                ${applicationNames.map(name => `<option value="${name}">`).join('')}
+              </datalist>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
@@ -379,6 +382,13 @@ function showCreateIssueModal() {
             </div>
           </div>
           <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Affected Area</label>
+            <input type="text" id="affected_area" 
+              placeholder="e.g., Login page, User profile section, Payment module"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <p class="text-xs text-gray-500 mt-1">Specify which part of the application is affected</p>
+          </div>
+          <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
             <input type="text" id="title" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
           </div>
@@ -386,7 +396,7 @@ function showCreateIssueModal() {
             <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
           </div>
-          <div class="grid grid-cols-2 gap-4">
+          <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Priority *</label>
               <select id="priority" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -402,6 +412,10 @@ function showCreateIssueModal() {
                 <option value="">Unassigned</option>
                 ${users.map(user => `<option value="${user.id}">${user.full_name}</option>`).join('')}
               </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Expected Completion</label>
+              <input type="date" id="expected_completion_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg">
             </div>
           </div>
           <div class="flex justify-end space-x-4 pt-4">
@@ -424,12 +438,14 @@ function showCreateIssueModal() {
 async function handleCreateIssue(e) {
   e.preventDefault();
   const formData = {
-    application_id: document.getElementById('application_id').value,
+    application_name: document.getElementById('application_name').value,
+    affected_area: document.getElementById('affected_area').value,
     title: document.getElementById('title').value,
     description: document.getElementById('description').value,
     type: document.getElementById('type').value,
     priority: document.getElementById('priority').value,
-    assigned_to: document.getElementById('assigned_to').value || null
+    assigned_to: document.getElementById('assigned_to').value || null,
+    expected_completion_date: document.getElementById('expected_completion_date').value || null
   };
 
   try {
@@ -450,7 +466,7 @@ async function showEditIssueModal(issueId) {
     const modal = document.getElementById('modalContainer');
     modal.innerHTML = `
       <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onclick="closeModal(event)">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4" onclick="event.stopPropagation()">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl m-4 max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
           <div class="flex justify-between items-center p-6 border-b">
             <h2 class="text-2xl font-bold text-gray-800"><i class="fas fa-edit mr-2"></i>Edit Issue #${issue.id}</h2>
             <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
@@ -460,9 +476,23 @@ async function showEditIssueModal(issueId) {
           <form id="editIssueForm" class="p-6 space-y-4">
             <input type="hidden" id="issue_id" value="${issue.id}">
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
-              <p class="text-sm text-gray-600"><strong>Application:</strong> ${issue.application_name}</p>
               <p class="text-sm text-gray-600"><strong>Reported by:</strong> ${issue.reported_by_name}</p>
               <p class="text-sm text-gray-600"><strong>Created:</strong> ${new Date(issue.created_at).toLocaleString()}</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Application Name *</label>
+                <input type="text" id="edit_application_name" required value="${issue.application_name}" list="editApplicationList"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                <datalist id="editApplicationList">
+                  ${applicationNames.map(name => `<option value="${name}">`).join('')}
+                </datalist>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Affected Area</label>
+                <input type="text" id="edit_affected_area" value="${issue.affected_area || ''}"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Title *</label>
@@ -472,7 +502,7 @@ async function showEditIssueModal(issueId) {
               <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea id="edit_description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${issue.description || ''}</textarea>
             </div>
-            <div class="grid grid-cols-3 gap-4">
+            <div class="grid grid-cols-4 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
                 <select id="edit_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -497,6 +527,11 @@ async function showEditIssueModal(issueId) {
                   <option value="">Unassigned</option>
                   ${users.map(user => `<option value="${user.id}" ${issue.assigned_to === user.id ? 'selected' : ''}>${user.full_name}</option>`).join('')}
                 </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Expected Completion</label>
+                <input type="date" id="edit_expected_completion_date" value="${issue.expected_completion_date || ''}" 
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg">
               </div>
             </div>
             <div class="flex justify-end space-x-4 pt-4">
@@ -523,11 +558,14 @@ async function handleEditIssue(e) {
   e.preventDefault();
   const issueId = document.getElementById('issue_id').value;
   const formData = {
+    application_name: document.getElementById('edit_application_name').value,
+    affected_area: document.getElementById('edit_affected_area').value,
     title: document.getElementById('edit_title').value,
     description: document.getElementById('edit_description').value,
     status: document.getElementById('edit_status').value,
     priority: document.getElementById('edit_priority').value,
-    assigned_to: document.getElementById('edit_assigned_to').value || null
+    assigned_to: document.getElementById('edit_assigned_to').value || null,
+    expected_completion_date: document.getElementById('edit_expected_completion_date').value || null
   };
 
   try {

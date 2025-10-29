@@ -124,41 +124,27 @@ app.get('/api/auth/me', authMiddleware, async (c) => {
 
 // ==================== Protected API Routes ====================
 
-// Get all applications
+// Get distinct application names
 app.get('/api/applications', authMiddleware, async (c) => {
   const result = await c.env.DB.prepare(`
-    SELECT * FROM applications ORDER BY name
+    SELECT DISTINCT application_name FROM issues ORDER BY application_name
   `).all()
   
   return c.json(result.results)
 })
 
-// Create new application
-app.post('/api/applications', authMiddleware, async (c) => {
-  const { name, description } = await c.req.json()
-  
-  const result = await c.env.DB.prepare(`
-    INSERT INTO applications (name, description)
-    VALUES (?, ?)
-  `).bind(name, description).run()
-  
-  return c.json({ id: result.meta.last_row_id, name, description })
-})
-
 // Get all issues with filters
 app.get('/api/issues', authMiddleware, async (c) => {
-  const { application_id, status, type, priority } = c.req.query()
+  const { application_name, status, type, priority } = c.req.query()
   
   let query = `
     SELECT 
       i.*,
-      a.name as application_name,
       u1.username as reported_by_username,
       u1.full_name as reported_by_name,
       u2.username as assigned_to_username,
       u2.full_name as assigned_to_name
     FROM issues i
-    JOIN applications a ON i.application_id = a.id
     JOIN users u1 ON i.reported_by = u1.id
     LEFT JOIN users u2 ON i.assigned_to = u2.id
     WHERE 1=1
@@ -166,9 +152,9 @@ app.get('/api/issues', authMiddleware, async (c) => {
   
   const params: any[] = []
   
-  if (application_id) {
-    query += ` AND i.application_id = ?`
-    params.push(application_id)
+  if (application_name) {
+    query += ` AND i.application_name = ?`
+    params.push(application_name)
   }
   
   if (status) {
@@ -200,13 +186,11 @@ app.get('/api/issues/:id', authMiddleware, async (c) => {
   const issue = await c.env.DB.prepare(`
     SELECT 
       i.*,
-      a.name as application_name,
       u1.username as reported_by_username,
       u1.full_name as reported_by_name,
       u2.username as assigned_to_username,
       u2.full_name as assigned_to_name
     FROM issues i
-    JOIN applications a ON i.application_id = a.id
     JOIN users u1 ON i.reported_by = u1.id
     LEFT JOIN users u2 ON i.assigned_to = u2.id
     WHERE i.id = ?
@@ -222,36 +206,38 @@ app.get('/api/issues/:id', authMiddleware, async (c) => {
 // Create new issue
 app.post('/api/issues', authMiddleware, async (c) => {
   const user = c.get('user')
-  const { application_id, title, description, type, priority, assigned_to } = await c.req.json()
+  const { application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date } = await c.req.json()
   
   const result = await c.env.DB.prepare(`
-    INSERT INTO issues (application_id, title, description, type, priority, reported_by, assigned_to)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).bind(application_id, title, description, type, priority, user.user_id, assigned_to || null).run()
+    INSERT INTO issues (application_name, affected_area, title, description, type, priority, reported_by, assigned_to, expected_completion_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(application_name, affected_area || null, title, description, type, priority, user.user_id, assigned_to || null, expected_completion_date || null).run()
   
   return c.json({ 
     id: result.meta.last_row_id,
-    application_id,
+    application_name,
+    affected_area,
     title,
     description,
     type,
     priority,
     status: 'open',
     reported_by: user.user_id,
-    assigned_to
+    assigned_to,
+    expected_completion_date
   })
 })
 
 // Update issue
 app.put('/api/issues/:id', authMiddleware, async (c) => {
   const id = c.req.param('id')
-  const { title, description, status, priority, assigned_to } = await c.req.json()
+  const { application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date } = await c.req.json()
   
   await c.env.DB.prepare(`
     UPDATE issues 
-    SET title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, updated_at = datetime('now')
+    SET application_name = ?, affected_area = ?, title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, expected_completion_date = ?, updated_at = datetime('now')
     WHERE id = ?
-  `).bind(title, description, status, priority, assigned_to || null, id).run()
+  `).bind(application_name, affected_area || null, title, description, status, priority, assigned_to || null, expected_completion_date || null, id).run()
   
   return c.json({ success: true })
 })
