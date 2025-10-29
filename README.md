@@ -27,9 +27,15 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - **Priority**: Low, Medium, High, Critical
 
 ✅ **Application Management**
-- Track issues across multiple applications
-- 4 sample applications pre-configured
-- Filterable by application
+- Free-form text input for application names
+- Auto-suggest from existing applications
+- Filterable by application name
+- **Affected Area**: Specify which part of the application is not working
+
+✅ **Expected Completion Date**
+- Set target completion dates for issues
+- Track deadlines and milestones
+- Filter and sort by expected completion
 
 ✅ **User Assignment**
 - Assign issues to team members
@@ -55,15 +61,14 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `GET /api/auth/me` - Get current user info
 
 ### Issue Management Endpoints
-- `GET /api/issues` - List all issues (supports query params: `application_id`, `status`, `type`, `priority`)
+- `GET /api/issues` - List all issues (supports query params: `application_name`, `status`, `type`, `priority`)
 - `GET /api/issues/:id` - Get single issue details
-- `POST /api/issues` - Create new issue (body: `{application_id, title, description, type, priority, assigned_to}`)
-- `PUT /api/issues/:id` - Update issue (body: `{title, description, status, priority, assigned_to}`)
+- `POST /api/issues` - Create new issue (body: `{application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date}`)
+- `PUT /api/issues/:id` - Update issue (body: `{application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date}`)
 - `DELETE /api/issues/:id` - Delete issue
 
 ### Application & User Endpoints
-- `GET /api/applications` - List all applications
-- `POST /api/applications` - Create new application (body: `{name, description}`)
+- `GET /api/applications` - List distinct application names from existing issues
 - `GET /api/users` - List all users
 - `GET /api/stats` - Get statistics summary
 
@@ -109,15 +114,10 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `full_name`
 - `created_at`, `updated_at`
 
-**Applications Table**
-- `id` (Primary Key)
-- `name` (Unique)
-- `description`
-- `created_at`, `updated_at`
-
 **Issues Table**
 - `id` (Primary Key)
-- `application_id` (Foreign Key → Applications)
+- `application_name` (Free-form text)
+- `affected_area` (Free-form text, nullable - which part of app isn't working)
 - `title`
 - `description`
 - `type` (bug/feature)
@@ -125,6 +125,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `priority` (low/medium/high/critical)
 - `reported_by` (Foreign Key → Users)
 - `assigned_to` (Foreign Key → Users, nullable)
+- `expected_completion_date` (Date, nullable)
 - `created_at`, `updated_at`
 
 **Sessions Table**
@@ -150,14 +151,15 @@ A comprehensive bug and feature tracking application built with Hono framework a
    - All subsequent requests include session cookie for authentication
 
 2. **Issue Creation Flow**:
-   - User creates issue → Frontend sends to `/api/issues`
+   - User types application name (with auto-suggest) → Specifies affected area
+   - User sets expected completion date → Frontend sends to `/api/issues`
    - Backend validates session → Inserts into D1 issues table
    - Returns created issue → Frontend refreshes issue list
 
 3. **Filtering Flow**:
-   - User selects filters → Frontend builds query parameters
+   - User types/selects application filter → Frontend builds query parameters
    - Backend queries D1 with WHERE clauses → Returns filtered results
-   - Frontend updates table display
+   - Frontend updates table display with affected areas and completion dates
 
 ## 👥 User Guide
 
@@ -177,8 +179,8 @@ A comprehensive bug and feature tracking application built with Hono framework a
    - View the main issues table with all tracked bugs and features
 
 3. **Filter Issues**:
-   - Use the filter dropdowns to narrow down issues:
-     - **Application**: Filter by specific app
+   - Use the filter options to narrow down issues:
+     - **Application**: Type to filter by application name (auto-suggest)
      - **Status**: Filter by issue status
      - **Type**: Show only bugs or features
      - **Priority**: Filter by priority level
@@ -186,15 +188,18 @@ A comprehensive bug and feature tracking application built with Hono framework a
 4. **Create New Issue**:
    - Click "New Issue" button
    - Fill in the form:
-     - Select application
+     - **Application Name**: Type any application name (auto-suggests from existing)
+     - **Affected Area**: Specify which part isn't working (e.g., "Login page", "Payment module")
      - Choose type (Bug or Feature)
      - Enter title and description
      - Set priority level
+     - **Expected Completion Date**: Set target completion date
      - Optionally assign to a team member
    - Click "Create Issue"
 
 5. **Edit Issue**:
    - Click the edit icon (pencil) on any issue
+   - Update application name, affected area, and expected completion date as needed
    - Update title, description, status, priority, or assignee
    - Click "Save Changes"
 
@@ -283,8 +288,11 @@ npm run db:console:prod
 
 The application comes pre-seeded with:
 - **5 Users**: admin, john, jane, bob, alice
-- **4 Applications**: Web Portal, Mobile App, Admin Dashboard, API Gateway
-- **6 Sample Issues**: Mix of bugs and features with various statuses and priorities
+- **6 Sample Issues**: Mix of bugs and features across different applications with:
+  - Application names: Web Portal, Mobile App, Admin Dashboard, API Gateway
+  - Affected areas specified (e.g., "Login page - Chrome browser", "iOS version")
+  - Expected completion dates set
+  - Various statuses and priorities
 
 ## 📄 License
 
