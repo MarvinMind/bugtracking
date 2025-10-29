@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "webapp",
+  "name": "renoir-bug-tracker",
   "compatibility_date": "2025-10-29",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [
@@ -9,8 +9,8 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "webapp-production",
-      "database_id": "95c0225a-e4bd-4ef0-87a5-25913926cfad"
+      "database_name": "renoir-bug-tracker-production",
+      "database_id": "0f315142-4927-4f6b-9951-68b6006a0b25"
     }
   ]
 }
