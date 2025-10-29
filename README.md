@@ -1,6 +1,8 @@
-# Bug & Feature Tracker
+# Renoir Consulting - Issue Tracker
 
 A comprehensive bug and feature tracking application built with Hono framework and Cloudflare D1 database, designed for teams of 4-5 users to track issues across multiple applications.
+
+**Branded for Renoir Consulting** with custom logo, color scheme, and design guidelines.
 
 ## 🌐 Live Demo
 
@@ -283,6 +285,27 @@ npm run db:console:local
 # Execute SQL queries on production
 npm run db:console:prod
 ```
+
+## 🎨 Branding
+
+The application follows Renoir Consulting's brand guidelines:
+
+**Color Palette:**
+- Primary CTA: Green `#7CB342` (bg-green-600)
+- Secondary CTA: Teal `#00ACC1` (bg-teal-600)
+- Background: Gradient from teal-50 to green-100
+- Cards: White with shadow-md
+- Text: Gray-900 (primary), Gray-600 (secondary)
+
+**Design Elements:**
+- Border Radius: 8px (rounded-lg)
+- Shadows: shadow-md for elevation
+- Logo: Displayed at h-16 (header), h-20 (login/hero)
+- Border Accents: Green and teal border highlights
+
+**Logos:**
+- Light logo: `/logo-light.png` (colored, for white backgrounds)
+- Dark logo: `/logo-dark.png` (white text, for dark backgrounds)
 
 ## 🎨 Demo Data
 
