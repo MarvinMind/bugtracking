@@ -69,8 +69,10 @@ async function handleLogin(e) {
   const password = document.getElementById('password').value;
 
   try {
-    const response = await axios.post('/api/auth/login', { username, password });
-    currentUser = response.data.user;
+    await axios.post('/api/auth/login', { username, password });
+    // Fetch full user data including role and permissions
+    const userResponse = await axios.get('/api/auth/me');
+    currentUser = userResponse.data;
     showDashboard();
     loadDashboardData();
   } catch (error) {
