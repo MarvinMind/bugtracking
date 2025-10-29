@@ -27,7 +27,7 @@ function showLogin() {
     <div class="min-h-screen flex items-center justify-center px-4">
       <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div class="text-center mb-6">
-          <img src="/logo-light.png" alt="Renoir Consulting" class="h-20 mx-auto mb-4">
+          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-20 mx-auto mb-4">
           <h1 class="text-2xl font-bold text-gray-900">Issue Tracker</h1>
           <p class="text-gray-600 mt-2">Track bugs and features across your applications</p>
         </div>
@@ -93,7 +93,7 @@ function showDashboard() {
     <nav class="bg-white shadow-md border-b-4 border-green-600">
       <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <img src="/logo-light.png" alt="Renoir Consulting" class="h-16">
+          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
           <div class="border-l-2 border-gray-300 pl-3">
             <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
           </div>
