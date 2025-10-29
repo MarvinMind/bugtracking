@@ -273,6 +273,24 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (c) =>
     return c.json({ error: 'Cannot delete your own account' }, 400)
   }
   
+  // Check if user has any issues (reported or assigned)
+  const issueCheck = await c.env.DB.prepare(`
+    SELECT COUNT(*) as count FROM issues 
+    WHERE reported_by = ? OR assigned_to = ?
+  `).bind(id, id).first()
+  
+  if (issueCheck && issueCheck.count > 0) {
+    return c.json({ 
+      error: `Cannot delete user: they have ${issueCheck.count} associated issue(s). Please reassign or delete their issues first.` 
+    }, 400)
+  }
+  
+  // Delete user's sessions first
+  await c.env.DB.prepare(`
+    DELETE FROM sessions WHERE user_id = ?
+  `).bind(id).run()
+  
+  // Delete the user
   await c.env.DB.prepare(`
     DELETE FROM users WHERE id = ?
   `).bind(id).run()
