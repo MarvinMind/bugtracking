@@ -1,11 +1,16 @@
 -- Insert default users (password is 'password123' hashed with a simple method for demo)
 -- In production, use proper password hashing like bcrypt
-INSERT OR IGNORE INTO users (id, username, password, email, full_name) VALUES 
-  (1, 'admin', 'password123', 'admin@example.com', 'Admin User'),
-  (2, 'john', 'password123', 'john@example.com', 'John Doe'),
-  (3, 'jane', 'password123', 'jane@example.com', 'Jane Smith'),
-  (4, 'bob', 'password123', 'bob@example.com', 'Bob Johnson'),
-  (5, 'alice', 'password123', 'alice@example.com', 'Alice Williams');
+
+-- Insert admin user with full permissions
+INSERT OR IGNORE INTO users (id, username, password, email, full_name, role, can_create_issues, can_edit_issues, can_delete_issues, can_resolve_issues, can_assign_issues) VALUES 
+  (1, 'admin', 'password123', 'admin@example.com', 'Admin User', 'admin', 1, 1, 1, 1, 1);
+
+-- Insert regular users with standard permissions
+INSERT OR IGNORE INTO users (id, username, password, email, full_name, role, can_create_issues, can_edit_issues, can_delete_issues, can_resolve_issues, can_assign_issues) VALUES 
+  (2, 'john', 'password123', 'john@example.com', 'John Doe', 'user', 1, 1, 0, 0, 1),
+  (3, 'jane', 'password123', 'jane@example.com', 'Jane Smith', 'user', 1, 1, 0, 0, 1),
+  (4, 'bob', 'password123', 'bob@example.com', 'Bob Johnson', 'user', 1, 1, 0, 0, 1),
+  (5, 'alice', 'password123', 'alice@example.com', 'Alice Williams', 'user', 1, 1, 0, 0, 1);
 
 -- Insert sample issues (now with application_name as free text)
 INSERT OR IGNORE INTO issues (application_name, affected_area, title, description, type, status, priority, reported_by, assigned_to, expected_completion_date) VALUES 
