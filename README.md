@@ -6,8 +6,9 @@ A comprehensive bug and feature tracking application built with Hono framework a
 
 ## 🌐 Live Demo
 
-**Production URL**: To be deployed  
-**Sandbox URL**: https://3000-iboampgrsdxqbpverczzm-dfc00ec5.sandbox.novita.ai
+**Production URL**: https://renoir-bug-tracker.pages.dev  
+**Latest Deployment**: https://ac74a8e1.renoir-bug-tracker.pages.dev  
+**GitHub Repository**: https://github.com/RenoirGroup/bugtracking
 
 ## ✨ Features
 
@@ -16,7 +17,28 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ✅ **User Authentication**
 - Secure login/logout with session management
 - Session-based authentication using Cloudflare D1
-- 5 demo user accounts pre-configured
+- Admin user pre-configured (email: keith.symondson@renoirgroup.com)
+
+✅ **Role-Based Access Control**
+- Three roles: Admin, User, Viewer
+- Granular permissions system:
+  - can_create_issues
+  - can_edit_issues
+  - can_delete_issues
+  - can_resolve_issues
+  - can_assign_issues
+- Permission-based UI (buttons only shown if user has permission)
+
+✅ **Admin Panel** (Admin users only)
+- Create new users with custom permissions
+- Edit user roles and permissions
+- Delete users (with safety checks for users with issues)
+- Toggle individual permissions per user
+
+✅ **Profile Settings**
+- Update email and full name
+- Change password with current password verification
+- Password strength requirements (minimum 6 characters)
 
 ✅ **Issue Management**
 - Create, read, update, and delete issues
@@ -60,7 +82,17 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ### Authentication Endpoints
 - `POST /api/auth/login` - User login (body: `{username, password}`)
 - `POST /api/auth/logout` - User logout
-- `GET /api/auth/me` - Get current user info
+- `GET /api/auth/me` - Get current user info with role and permissions
+
+### Profile Management Endpoints
+- `PUT /api/profile` - Update user profile (body: `{email, full_name}`)
+- `PUT /api/profile/password` - Change password (body: `{current_password, new_password}`)
+
+### Admin Endpoints (Admin Role Required)
+- `GET /api/admin/users` - List all users with roles and permissions
+- `POST /api/admin/users` - Create new user (body: `{username, password, email, full_name, role, permissions}`)
+- `PUT /api/admin/users/:id` - Update user role and permissions
+- `DELETE /api/admin/users/:id` - Delete user (checks for associated issues)
 
 ### Issue Management Endpoints
 - `GET /api/issues` - List all issues (supports query params: `application_name`, `status`, `type`, `priority`)
@@ -114,6 +146,12 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `password` (Currently plain text - needs bcrypt in production)
 - `email` (Unique)
 - `full_name`
+- `role` (admin/user/viewer)
+- `can_create_issues` (Boolean)
+- `can_edit_issues` (Boolean)
+- `can_delete_issues` (Boolean)
+- `can_resolve_issues` (Boolean)
+- `can_assign_issues` (Boolean)
 - `created_at`, `updated_at`
 
 **Issues Table**
@@ -142,7 +180,8 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - SQLite-based globally distributed database
 - Stores all user data, applications, issues, and sessions
 - Local development uses `.wrangler/state/v3/d1` for testing
-- Production uses Cloudflare D1 (database ID: `95c0225a-e4bd-4ef0-87a5-25913926cfad`)
+- Production uses Cloudflare D1 (database ID: `0f315142-4927-4f6b-9951-68b6006a0b25`)
+- Database name: `renoir-bug-tracker-production`
 
 ### Data Flow
 
@@ -169,12 +208,10 @@ A comprehensive bug and feature tracking application built with Hono framework a
 
 1. **Login**:
    - Navigate to the application URL
-   - Use one of the demo accounts:
-     - `admin` / `password123`
-     - `john` / `password123`
-     - `jane` / `password123`
-     - `bob` / `password123`
-     - `alice` / `password123`
+   - Use the admin account:
+     - Username: `admin`
+     - Password: `password123`
+     - Email: keith.symondson@renoirgroup.com
 
 2. **View Dashboard**:
    - After login, see statistics cards showing total, open, in-progress, and critical issues
@@ -209,7 +246,19 @@ A comprehensive bug and feature tracking application built with Hono framework a
    - Click the delete icon (trash) on any issue
    - Confirm deletion
 
-7. **Track Progress**:
+7. **Manage Users** (Admin only):
+   - Click "Admin" tab in navigation
+   - Create new users with specific roles and permissions
+   - Edit existing users to modify permissions
+   - Delete users (system prevents deletion if user has associated issues)
+
+8. **Update Profile**:
+   - Click "Profile" tab in navigation
+   - Update your email and full name
+   - Change your password securely
+   - View your role and permissions
+
+9. **Track Progress**:
    - Monitor statistics cards for quick overview
    - Update issue status as work progresses
    - Use priority levels to organize work
@@ -226,8 +275,9 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ## 📦 Deployment
 
 ### Deployment Status
-- ❌ Not yet deployed to production
-- ✅ Running in sandbox environment
+- ✅ Deployed to Cloudflare Pages
+- ✅ Production D1 database configured
+- ✅ GitHub repository integrated
 
 ### Local Development
 
@@ -307,15 +357,12 @@ The application follows Renoir Consulting's brand guidelines:
 - Light logo: `/static/logo-light.jpg` (colored, for white backgrounds)
 - Dark logo: `/static/logo-dark.jpg` (white text, for dark backgrounds)
 
-## 🎨 Demo Data
+## 🎨 Production Data
 
-The application comes pre-seeded with:
-- **5 Users**: admin, john, jane, bob, alice
-- **6 Sample Issues**: Mix of bugs and features across different applications with:
-  - Application names: Web Portal, Mobile App, Admin Dashboard, API Gateway
-  - Affected areas specified (e.g., "Login page - Chrome browser", "iOS version")
-  - Expected completion dates set
-  - Various statuses and priorities
+The production application has:
+- **Admin User**: username `admin`, email `keith.symondson@renoirgroup.com`
+- **Full Permissions**: Admin has all permissions enabled
+- **Clean Database**: No sample issues (ready for real data)
 
 ## 📄 License
 
@@ -327,6 +374,6 @@ This is a demo project. Feel free to fork and customize for your needs!
 
 ---
 
-**Last Updated**: 2025-10-29  
-**Version**: 1.0.0  
-**Status**: ✅ Fully Functional in Sandbox Environment
+**Last Updated**: 2025-10-30  
+**Version**: 1.1.0  
+**Status**: ✅ Deployed to Production on Cloudflare Pages
