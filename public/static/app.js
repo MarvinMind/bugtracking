@@ -49,12 +49,6 @@ function showLogin() {
             <i class="fas fa-sign-in-alt mr-2"></i>Login
           </button>
         </form>
-        <div class="mt-4 p-3 bg-teal-50 rounded-lg text-sm text-gray-700">
-          <strong>Demo accounts:</strong><br>
-          admin / password123<br>
-          john / password123<br>
-          jane / password123
-        </div>
       </div>
     </div>
   `;
