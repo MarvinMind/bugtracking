@@ -30,7 +30,10 @@ function showLogin() {
       <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div class="text-center mb-6">
           <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-20 mx-auto mb-4">
-          <h1 class="text-2xl font-bold text-gray-900">Issue Tracker</h1>
+          <div class="flex items-center justify-center mb-2">
+            <i class="fas fa-bug text-green-600 text-3xl mr-3"></i>
+            <h1 class="text-2xl font-bold text-gray-900">Issue Tracker</h1>
+          </div>
           <p class="text-gray-600 mt-2">Track bugs and features across your applications</p>
         </div>
         <form id="loginForm" class="space-y-4">
