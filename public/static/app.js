@@ -113,6 +113,10 @@ function showDashboard() {
               <i class="fas fa-users-cog mr-2"></i>Admin
             </button>
           ` : ''}
+          <button onclick="showProfileSettings()" 
+            class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+            <i class="fas fa-user-cog mr-2"></i>Profile
+          </button>
           <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
           <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
             <i class="fas fa-sign-out-alt mr-2"></i>Logout
@@ -1002,6 +1006,167 @@ async function deleteUser(userId) {
     loadAllUsers();
   } catch (error) {
     alert('Error deleting user: ' + (error.response?.data?.error || error.message));
+  }
+}
+
+// ==================== Profile Settings ====================
+
+function showProfileSettings() {
+  currentView = 'profile';
+  document.getElementById('app').innerHTML = `
+    <nav class="bg-white shadow-md border-b-4 border-green-600">
+      <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <div class="flex items-center space-x-3">
+          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
+          <div class="border-l-2 border-gray-300 pl-3">
+            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button onclick="showDashboard(); currentView='dashboard'; loadDashboardData();" 
+            class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+            <i class="fas fa-tasks mr-2"></i>Issues
+          </button>
+          ${currentUser.role === 'admin' ? `
+            <button onclick="showAdminPanel()" 
+              class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+              <i class="fas fa-users-cog mr-2"></i>Admin
+            </button>
+          ` : ''}
+          <button onclick="showProfileSettings()" 
+            class="px-4 py-2 text-green-600 border-b-2 border-green-600 font-semibold">
+            <i class="fas fa-user-cog mr-2"></i>Profile
+          </button>
+          <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
+          <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">
+            <i class="fas fa-sign-out-alt mr-2"></i>Logout
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+      <div class="max-w-3xl mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">
+          <i class="fas fa-user-cog text-green-600 mr-2"></i>Profile Settings
+        </h2>
+
+        <!-- Account Information -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-info-circle text-blue-600 mr-2"></i>Account Information
+          </h3>
+          <div class="space-y-3">
+            <div>
+              <label class="text-sm font-medium text-gray-600">Username</label>
+              <p class="text-gray-900 font-medium">${currentUser.username}</p>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-gray-600">Role</label>
+              <p class="text-gray-900 font-medium capitalize">${currentUser.role}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Update Profile Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-edit text-green-600 mr-2"></i>Update Profile
+          </h3>
+          <form id="updateProfileForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+              <input type="email" id="profileEmail" value="${currentUser.email}" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+              <input type="text" id="profileFullName" value="${currentUser.full_name}" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+            </div>
+            <button type="submit" 
+              class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
+              <i class="fas fa-save mr-2"></i>Save Profile Changes
+            </button>
+          </form>
+        </div>
+
+        <!-- Change Password Form -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+          <h3 class="text-lg font-semibold text-gray-900 mb-4">
+            <i class="fas fa-key text-orange-600 mr-2"></i>Change Password
+          </h3>
+          <form id="changePasswordForm" class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+              <input type="password" id="currentPassword" required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+              <input type="password" id="newPassword" required minlength="6"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+              <p class="text-xs text-gray-500 mt-1">Minimum 6 characters</p>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+              <input type="password" id="confirmPassword" required minlength="6"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+            </div>
+            <button type="submit" 
+              class="w-full bg-orange-600 text-white py-2 rounded-lg hover:bg-orange-700 transition">
+              <i class="fas fa-lock mr-2"></i>Change Password
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Attach form handlers
+  document.getElementById('updateProfileForm').addEventListener('submit', handleUpdateProfile);
+  document.getElementById('changePasswordForm').addEventListener('submit', handleChangePassword);
+}
+
+async function handleUpdateProfile(e) {
+  e.preventDefault();
+  const email = document.getElementById('profileEmail').value;
+  const full_name = document.getElementById('profileFullName').value;
+
+  try {
+    await axios.put('/api/profile', { email, full_name });
+    
+    // Update currentUser
+    currentUser.email = email;
+    currentUser.full_name = full_name;
+    
+    alert('Profile updated successfully!');
+    showProfileSettings(); // Refresh the page
+  } catch (error) {
+    alert('Error updating profile: ' + (error.response?.data?.error || error.message));
+  }
+}
+
+async function handleChangePassword(e) {
+  e.preventDefault();
+  const current_password = document.getElementById('currentPassword').value;
+  const new_password = document.getElementById('newPassword').value;
+  const confirm_password = document.getElementById('confirmPassword').value;
+
+  // Validate passwords match
+  if (new_password !== confirm_password) {
+    alert('New passwords do not match!');
+    return;
+  }
+
+  try {
+    await axios.put('/api/profile/password', { current_password, new_password });
+    alert('Password changed successfully!');
+    
+    // Clear the form
+    document.getElementById('changePasswordForm').reset();
+  } catch (error) {
+    alert('Error changing password: ' + (error.response?.data?.error || error.message));
   }
 }
 

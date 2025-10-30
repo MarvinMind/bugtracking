@@ -138,6 +138,69 @@ app.get('/api/auth/me', authMiddleware, async (c) => {
   })
 })
 
+// ==================== Profile Management Routes ====================
+
+// Update profile (email and full name)
+app.put('/api/profile', authMiddleware, async (c) => {
+  const user = c.get('user')
+  const { email, full_name } = await c.req.json()
+  
+  // Validate required fields
+  if (!email || !full_name) {
+    return c.json({ error: 'Email and full name are required' }, 400)
+  }
+  
+  // Check if email is already taken by another user
+  const existingUser = await c.env.DB.prepare(`
+    SELECT id FROM users WHERE email = ? AND id != ?
+  `).bind(email, user.user_id).first()
+  
+  if (existingUser) {
+    return c.json({ error: 'Email already in use by another user' }, 400)
+  }
+  
+  // Update user profile
+  await c.env.DB.prepare(`
+    UPDATE users SET email = ?, full_name = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).bind(email, full_name, user.user_id).run()
+  
+  return c.json({ success: true, message: 'Profile updated successfully' })
+})
+
+// Change password
+app.put('/api/profile/password', authMiddleware, async (c) => {
+  const user = c.get('user')
+  const { current_password, new_password } = await c.req.json()
+  
+  // Validate required fields
+  if (!current_password || !new_password) {
+    return c.json({ error: 'Current password and new password are required' }, 400)
+  }
+  
+  // Validate new password length
+  if (new_password.length < 6) {
+    return c.json({ error: 'New password must be at least 6 characters' }, 400)
+  }
+  
+  // Verify current password
+  const userRecord = await c.env.DB.prepare(`
+    SELECT password FROM users WHERE id = ?
+  `).bind(user.user_id).first()
+  
+  if (!userRecord || userRecord.password !== current_password) {
+    return c.json({ error: 'Current password is incorrect' }, 401)
+  }
+  
+  // Update password
+  await c.env.DB.prepare(`
+    UPDATE users SET password = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).bind(new_password, user.user_id).run()
+  
+  return c.json({ success: true, message: 'Password changed successfully' })
+})
+
 // ==================== Admin Middleware ====================
 
 const adminMiddleware = async (c: any, next: any) => {
