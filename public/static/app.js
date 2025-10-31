@@ -44,8 +44,15 @@ function showLogin() {
           </div>
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-            <input type="password" id="password" required 
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <div class="relative">
+              <input type="password" id="password" required 
+                class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <button type="button" id="togglePassword" 
+                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                title="Show/Hide Password">
+                <i class="fas fa-eye" id="togglePasswordIcon"></i>
+              </button>
+            </div>
           </div>
           <button type="submit" 
             class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition">
@@ -57,13 +64,43 @@ function showLogin() {
   `;
 
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  
+  // Add password visibility toggle
+  document.getElementById('togglePassword').addEventListener('click', function() {
+    const passwordInput = document.getElementById('password');
+    const icon = document.getElementById('togglePasswordIcon');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      passwordInput.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  });
 }
 
 // Handle login
 async function handleLogin(e) {
   e.preventDefault();
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
+  
+  // Trim whitespace from credentials to avoid login failures
+  const username = document.getElementById('username').value.trim();
+  const password = document.getElementById('password').value.trim();
+  
+  // Validate fields
+  if (!username || !password) {
+    alert('Please enter both username and password');
+    return;
+  }
+  
+  // Disable submit button to prevent multiple submissions
+  const submitButton = e.target.querySelector('button[type="submit"]');
+  const originalText = submitButton.innerHTML;
+  submitButton.disabled = true;
+  submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging in...';
 
   try {
     await axios.post('/api/auth/login', { username, password });
@@ -73,7 +110,15 @@ async function handleLogin(e) {
     showDashboard();
     loadDashboardData();
   } catch (error) {
-    alert('Invalid credentials. Please try again.');
+    // Re-enable button and restore original text
+    submitButton.disabled = false;
+    submitButton.innerHTML = originalText;
+    
+    const errorMsg = error.response?.data?.error || 'Login failed. Please check your credentials and try again.';
+    alert(errorMsg);
+    
+    // Clear password field on error
+    document.getElementById('password').value = '';
   }
 }
 

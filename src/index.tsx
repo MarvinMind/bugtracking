@@ -65,11 +65,19 @@ const createSession = async (db: D1Database, userId: number) => {
 app.post('/api/auth/login', async (c) => {
   const { username, password } = await c.req.json()
   
+  // Trim whitespace to prevent login failures
+  const trimmedUsername = username?.trim()
+  const trimmedPassword = password?.trim()
+  
+  if (!trimmedUsername || !trimmedPassword) {
+    return c.json({ error: 'Invalid credentials' }, 401)
+  }
+  
   const user = await c.env.DB.prepare(`
     SELECT id, username, password, email, full_name, role
     FROM users
     WHERE username = ? AND password = ?
-  `).bind(username, password).first()
+  `).bind(trimmedUsername, trimmedPassword).first()
   
   if (!user) {
     return c.json({ error: 'Invalid credentials' }, 401)
