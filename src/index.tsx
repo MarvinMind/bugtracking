@@ -452,12 +452,12 @@ app.post('/api/issues', authMiddleware, async (c) => {
     return c.json({ error: 'You do not have permission to create issues' }, 403)
   }
   
-  const { application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date } = await c.req.json()
+  const { application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date, screenshot } = await c.req.json()
   
   const result = await c.env.DB.prepare(`
-    INSERT INTO issues (application_name, affected_area, title, description, type, priority, reported_by, assigned_to, expected_completion_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).bind(application_name, affected_area || null, title, description, type, priority, user.user_id, assigned_to || null, expected_completion_date || null).run()
+    INSERT INTO issues (application_name, affected_area, title, description, type, priority, reported_by, assigned_to, expected_completion_date, screenshot)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).bind(application_name, affected_area || null, title, description, type, priority, user.user_id, assigned_to || null, expected_completion_date || null, screenshot || null).run()
   
   return c.json({ 
     id: result.meta.last_row_id,
@@ -470,7 +470,8 @@ app.post('/api/issues', authMiddleware, async (c) => {
     status: 'open',
     reported_by: user.user_id,
     assigned_to,
-    expected_completion_date
+    expected_completion_date,
+    screenshot
   })
 })
 
@@ -478,7 +479,7 @@ app.post('/api/issues', authMiddleware, async (c) => {
 app.put('/api/issues/:id', authMiddleware, async (c) => {
   const id = c.req.param('id')
   const user = c.get('user')
-  const { application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date } = await c.req.json()
+  const { application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date, screenshot } = await c.req.json()
   
   // Check permissions
   const userData = await c.env.DB.prepare(`SELECT can_edit_issues, can_resolve_issues FROM users WHERE id = ?`).bind(user.user_id).first()
@@ -495,9 +496,9 @@ app.put('/api/issues/:id', authMiddleware, async (c) => {
   
   await c.env.DB.prepare(`
     UPDATE issues 
-    SET application_name = ?, affected_area = ?, title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, expected_completion_date = ?, updated_at = datetime('now')
+    SET application_name = ?, affected_area = ?, title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, expected_completion_date = ?, screenshot = ?, updated_at = datetime('now')
     WHERE id = ?
-  `).bind(application_name, affected_area || null, title, description, status, priority, assigned_to || null, expected_completion_date || null, id).run()
+  `).bind(application_name, affected_area || null, title, description, status, priority, assigned_to || null, expected_completion_date || null, screenshot || null, id).run()
   
   return c.json({ success: true })
 })

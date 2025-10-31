@@ -314,7 +314,10 @@ async function loadIssues() {
     tbody.innerHTML = issues.map(issue => `
       <tr class="border-t hover:bg-gray-50">
         <td class="px-4 py-3 text-sm">#${issue.id}</td>
-        <td class="px-4 py-3 text-sm font-medium">${issue.title}</td>
+        <td class="px-4 py-3 text-sm font-medium">
+          ${issue.title}
+          ${issue.screenshot ? '<i class="fas fa-camera text-blue-600 ml-2 cursor-pointer" onclick="showScreenshot(' + issue.id + ')" title="View screenshot"></i>' : ''}
+        </td>
         <td class="px-4 py-3 text-sm">${issue.application_name}</td>
         <td class="px-4 py-3 text-sm text-gray-600">${issue.affected_area || '-'}</td>
         <td class="px-4 py-3">
@@ -374,6 +377,40 @@ function getPriorityBadge(priority) {
   return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${colors[priority]}">${priority}</span>`;
 }
 
+// Show screenshot modal
+async function showScreenshot(issueId) {
+  try {
+    const response = await axios.get(`/api/issues/${issueId}`);
+    const issue = response.data;
+    
+    if (!issue.screenshot) {
+      alert('No screenshot available');
+      return;
+    }
+    
+    const modal = document.getElementById('modalContainer');
+    modal.innerHTML = `
+      <div class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50" onclick="closeModal(event)">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl m-4 max-h-[90vh] overflow-auto" onclick="event.stopPropagation()">
+          <div class="flex justify-between items-center p-4 border-b">
+            <h3 class="text-lg font-bold text-gray-800">
+              <i class="fas fa-camera text-blue-600 mr-2"></i>Screenshot - Issue #${issue.id}: ${issue.title}
+            </h3>
+            <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+          <div class="p-4">
+            <img src="${issue.screenshot}" class="max-w-full h-auto rounded" alt="Issue screenshot">
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    alert('Error loading screenshot: ' + error.message);
+  }
+}
+
 // Show create issue modal
 function showCreateIssueModal() {
   const modal = document.getElementById('modalContainer');
@@ -420,6 +457,15 @@ function showCreateIssueModal() {
             <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea id="description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg"></textarea>
           </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">
+              <i class="fas fa-camera text-blue-600 mr-1"></i>Screenshot (Optional)
+            </label>
+            <input type="file" id="screenshot" accept="image/*" 
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+            <p class="text-xs text-gray-500 mt-1">Upload a screenshot of the issue (max 2MB)</p>
+            <div id="screenshotPreview" class="mt-2"></div>
+          </div>
           <div class="grid grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">Priority *</label>
@@ -456,11 +502,55 @@ function showCreateIssueModal() {
   `;
 
   document.getElementById('createIssueForm').addEventListener('submit', handleCreateIssue);
+  
+  // Add screenshot preview
+  document.getElementById('screenshot').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('screenshotPreview');
+    
+    if (file) {
+      // Check file size (max 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Screenshot must be smaller than 2MB');
+        e.target.value = '';
+        preview.innerHTML = '';
+        return;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        preview.innerHTML = `
+          <div class="relative inline-block">
+            <img src="${event.target.result}" class="max-w-xs max-h-48 rounded border border-gray-300" alt="Screenshot preview">
+            <button type="button" onclick="document.getElementById('screenshot').value=''; document.getElementById('screenshotPreview').innerHTML='';" 
+              class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700">
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+        `;
+      };
+      reader.readAsDataURL(file);
+    } else {
+      preview.innerHTML = '';
+    }
+  });
 }
 
 // Handle create issue
 async function handleCreateIssue(e) {
   e.preventDefault();
+  
+  // Get screenshot as base64 if uploaded
+  let screenshot = null;
+  const screenshotFile = document.getElementById('screenshot').files[0];
+  if (screenshotFile) {
+    screenshot = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(screenshotFile);
+    });
+  }
+  
   const formData = {
     application_name: document.getElementById('application_name').value,
     affected_area: document.getElementById('affected_area').value,
@@ -469,7 +559,8 @@ async function handleCreateIssue(e) {
     type: document.getElementById('type').value,
     priority: document.getElementById('priority').value,
     assigned_to: document.getElementById('assigned_to').value || null,
-    expected_completion_date: document.getElementById('expected_completion_date').value || null
+    expected_completion_date: document.getElementById('expected_completion_date').value || null,
+    screenshot: screenshot
   };
 
   try {
@@ -526,6 +617,23 @@ async function showEditIssueModal(issueId) {
               <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
               <textarea id="edit_description" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg">${issue.description || ''}</textarea>
             </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1">
+                <i class="fas fa-camera text-blue-600 mr-1"></i>Screenshot (Optional)
+              </label>
+              ${issue.screenshot ? `
+                <div class="mb-2">
+                  <div class="relative inline-block">
+                    <img src="${issue.screenshot}" class="max-w-xs max-h-32 rounded border border-gray-300" alt="Current screenshot">
+                    <span class="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">Current</span>
+                  </div>
+                </div>
+              ` : '<p class="text-sm text-gray-500 mb-2">No screenshot currently attached</p>'}
+              <input type="file" id="edit_screenshot" accept="image/*" 
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+              <p class="text-xs text-gray-500 mt-1">Upload a new screenshot to replace the existing one (max 2MB)</p>
+              <div id="editScreenshotPreview" class="mt-2"></div>
+            </div>
             <div class="grid grid-cols-4 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
@@ -572,6 +680,39 @@ async function showEditIssueModal(issueId) {
     `;
 
     document.getElementById('editIssueForm').addEventListener('submit', handleEditIssue);
+    
+    // Add screenshot preview for edit
+    document.getElementById('edit_screenshot').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      const preview = document.getElementById('editScreenshotPreview');
+      
+      if (file) {
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          alert('Screenshot must be smaller than 2MB');
+          e.target.value = '';
+          preview.innerHTML = '';
+          return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          preview.innerHTML = `
+            <div class="relative inline-block">
+              <img src="${event.target.result}" class="max-w-xs max-h-32 rounded border border-gray-300" alt="New screenshot preview">
+              <span class="absolute bottom-1 left-1 bg-green-600 text-white text-xs px-2 py-1 rounded">New</span>
+              <button type="button" onclick="document.getElementById('edit_screenshot').value=''; document.getElementById('editScreenshotPreview').innerHTML='';" 
+                class="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-700">
+                <i class="fas fa-times text-xs"></i>
+              </button>
+            </div>
+          `;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        preview.innerHTML = '';
+      }
+    });
   } catch (error) {
     alert('Error loading issue: ' + (error.response?.data?.error || error.message));
   }
@@ -581,6 +722,18 @@ async function showEditIssueModal(issueId) {
 async function handleEditIssue(e) {
   e.preventDefault();
   const issueId = document.getElementById('issue_id').value;
+  
+  // Get screenshot as base64 if uploaded
+  let screenshot = undefined; // undefined means don't update
+  const screenshotFile = document.getElementById('edit_screenshot').files[0];
+  if (screenshotFile) {
+    screenshot = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.readAsDataURL(screenshotFile);
+    });
+  }
+  
   const formData = {
     application_name: document.getElementById('edit_application_name').value,
     affected_area: document.getElementById('edit_affected_area').value,
@@ -591,6 +744,11 @@ async function handleEditIssue(e) {
     assigned_to: document.getElementById('edit_assigned_to').value || null,
     expected_completion_date: document.getElementById('edit_expected_completion_date').value || null
   };
+  
+  // Only include screenshot if a new one was uploaded
+  if (screenshot !== undefined) {
+    formData.screenshot = screenshot;
+  }
 
   try {
     await axios.put(`/api/issues/${issueId}`, formData);
