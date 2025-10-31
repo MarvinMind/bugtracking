@@ -172,6 +172,7 @@ function showDashboard() {
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Title</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Application</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Affected Area</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Reported By</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Type</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                 <th class="px-4 py-3 text-left text-sm font-semibold text-gray-700">Priority</th>
@@ -307,7 +308,7 @@ async function loadIssues() {
 
     const tbody = document.getElementById('issuesTableBody');
     if (issues.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="10" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
       return;
     }
 
@@ -320,6 +321,7 @@ async function loadIssues() {
         </td>
         <td class="px-4 py-3 text-sm">${issue.application_name}</td>
         <td class="px-4 py-3 text-sm text-gray-600">${issue.affected_area || '-'}</td>
+        <td class="px-4 py-3 text-sm text-gray-600">${issue.reported_by_name || 'Unknown'}</td>
         <td class="px-4 py-3">
           <span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${
             issue.type === 'bug' ? 'bg-red-100 text-red-800' : 'bg-teal-100 text-teal-800'
