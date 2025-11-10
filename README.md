@@ -7,7 +7,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ## 🌐 Live Demo
 
 **Production URL**: https://renoir-bug-tracker.pages.dev  
-**Latest Deployment**: https://ac74a8e1.renoir-bug-tracker.pages.dev  
+**Latest Deployment**: https://1f1f3913.renoir-bug-tracker.pages.dev  
 **GitHub Repository**: https://github.com/RenoirGroup/bugtracking
 
 ## ✨ Features
@@ -47,7 +47,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 
 ✅ **Issue Classification**
 - **Types**: Bug, Feature
-- **Status**: Open, In Progress, Resolved, Closed
+- **Status**: Open, Needs to Be Tested, Completed Testing, Closed
 - **Priority**: Low, Medium, High, Critical
 
 ✅ **Application Management**
@@ -67,15 +67,22 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - View who created each issue
 
 ✅ **Advanced Filtering**
-- Filter by application, status, type, and priority
+- Filter by application, status, type, priority, and assigned user
 - Real-time filter updates
 - Comprehensive issue listing
 
-✅ **Statistics Dashboard**
+✅ **Statistics Dashboard (6 Cards)**
 - Total issues count
 - Open issues tracking
-- In-progress issues tracking
+- Needs to Be Tested tracking
+- Completed Testing tracking
+- Closed issues tracking
 - Critical issues highlighting
+
+✅ **Screenshot Support**
+- Upload screenshots (up to 2MB) when creating/editing issues
+- View full-size screenshots by clicking thumbnails
+- Base64 encoding for direct database storage
 
 ## 📋 Functional URIs
 
@@ -95,10 +102,10 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `DELETE /api/admin/users/:id` - Delete user (checks for associated issues)
 
 ### Issue Management Endpoints
-- `GET /api/issues` - List all issues (supports query params: `application_name`, `status`, `type`, `priority`)
+- `GET /api/issues` - List all issues (supports query params: `application_name`, `status`, `type`, `priority`, `assigned_to`)
 - `GET /api/issues/:id` - Get single issue details
-- `POST /api/issues` - Create new issue (body: `{application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date}`)
-- `PUT /api/issues/:id` - Update issue (body: `{application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date}`)
+- `POST /api/issues` - Create new issue (body: `{application_name, affected_area, title, description, type, priority, assigned_to, expected_completion_date, screenshot}`)
+- `PUT /api/issues/:id` - Update issue (body: `{application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date, screenshot}`)
 - `DELETE /api/issues/:id` - Delete issue
 
 ### Application & User Endpoints
@@ -113,7 +120,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ## 🚀 Features Not Yet Implemented
 
 - [ ] **Comments/Activity Log**: Add comment threads to issues
-- [ ] **File Attachments**: Upload screenshots and files to issues
+- [ ] **Multiple File Attachments**: Upload multiple files to issues (currently supports 1 screenshot)
 - [ ] **Email Notifications**: Send notifications when assigned or status changes
 - [ ] **Custom Fields**: Allow custom fields per application
 - [ ] **Search Functionality**: Full-text search across issues
@@ -161,11 +168,12 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - `title`
 - `description`
 - `type` (bug/feature)
-- `status` (open/in_progress/resolved/closed)
+- `status` (open/needs_testing/completed_testing/closed)
 - `priority` (low/medium/high/critical)
 - `reported_by` (Foreign Key → Users)
 - `assigned_to` (Foreign Key → Users, nullable)
 - `expected_completion_date` (Date, nullable)
+- `screenshot` (Base64 encoded image, nullable, max 2MB)
 - `created_at`, `updated_at`
 
 **Sessions Table**
@@ -214,15 +222,18 @@ A comprehensive bug and feature tracking application built with Hono framework a
      - Email: keith.symondson@renoirgroup.com
 
 2. **View Dashboard**:
-   - After login, see statistics cards showing total, open, in-progress, and critical issues
+   - After login, see 6 statistics cards showing:
+     - Total Issues, Open Issues, Needs to Be Tested
+     - Completed Testing, Closed Issues, Critical Issues
    - View the main issues table with all tracked bugs and features
 
 3. **Filter Issues**:
    - Use the filter options to narrow down issues:
      - **Application**: Type to filter by application name (auto-suggest)
-     - **Status**: Filter by issue status
+     - **Status**: Filter by issue status (Open, Needs to Be Tested, Completed Testing, Closed)
      - **Type**: Show only bugs or features
      - **Priority**: Filter by priority level
+     - **Assigned To**: Filter by assigned user
 
 4. **Create New Issue**:
    - Click "New Issue" button
@@ -231,6 +242,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
      - **Affected Area**: Specify which part isn't working (e.g., "Login page", "Payment module")
      - Choose type (Bug or Feature)
      - Enter title and description
+     - **Upload Screenshot**: Attach a screenshot (optional, max 2MB)
      - Set priority level
      - **Expected Completion Date**: Set target completion date
      - Optionally assign to a team member
@@ -240,25 +252,31 @@ A comprehensive bug and feature tracking application built with Hono framework a
    - Click the edit icon (pencil) on any issue
    - Update application name, affected area, and expected completion date as needed
    - Update title, description, status, priority, or assignee
+   - **View/Replace Screenshot**: Click existing screenshot to view full-size, or upload new one
    - Click "Save Changes"
 
-6. **Delete Issue**:
+6. **View Screenshots**:
+   - Click the camera icon next to issue title in the table
+   - Or click the thumbnail when editing an issue
+   - Full-size screenshot opens in a modal
+
+7. **Delete Issue**:
    - Click the delete icon (trash) on any issue
    - Confirm deletion
 
-7. **Manage Users** (Admin only):
+8. **Manage Users** (Admin only):
    - Click "Admin" tab in navigation
    - Create new users with specific roles and permissions
    - Edit existing users to modify permissions
    - Delete users (system prevents deletion if user has associated issues)
 
-8. **Update Profile**:
+9. **Update Profile**:
    - Click "Profile" tab in navigation
    - Update your email and full name
    - Change your password securely
    - View your role and permissions
 
-9. **Track Progress**:
+10. **Track Progress**:
    - Monitor statistics cards for quick overview
    - Update issue status as work progresses
    - Use priority levels to organize work
@@ -374,6 +392,14 @@ This is a demo project. Feel free to fork and customize for your needs!
 
 ---
 
-**Last Updated**: 2025-10-30  
-**Version**: 1.1.0  
+**Last Updated**: 2025-01-10  
+**Version**: 1.2.0  
 **Status**: ✅ Deployed to Production on Cloudflare Pages
+
+### Recent Updates (v1.2.0)
+- ✅ Fixed filtering functionality - all filters now work correctly
+- ✅ Added "Assigned To" filter dropdown
+- ✅ Renamed statuses: "In Progress" → "Needs to Be Tested", "Resolved" → "Completed Testing"
+- ✅ Updated KPI dashboard to show 6 cards instead of 4
+- ✅ Added screenshot upload and viewing capability
+- ✅ Fixed filter dropdown population after users are loaded
