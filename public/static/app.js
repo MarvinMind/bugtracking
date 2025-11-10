@@ -361,6 +361,18 @@ async function loadUsers() {
   try {
     const response = await axios.get('/api/users');
     users = response.data;
+    
+    // Update the "Assigned To" filter dropdown with users
+    const filterAssignedTo = document.getElementById('filterAssignedTo');
+    if (filterAssignedTo) {
+      const currentValue = filterAssignedTo.value;
+      filterAssignedTo.innerHTML = `
+        <option value="">All Assigned To</option>
+        ${users.map(user => `<option value="${user.id}">${user.full_name}</option>`).join('')}
+      `;
+      // Restore selected value if there was one
+      filterAssignedTo.value = currentValue;
+    }
   } catch (error) {
     console.error('Error loading users:', error);
   }
