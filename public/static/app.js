@@ -280,7 +280,12 @@ async function loadStats() {
     const response = await axios.get('/api/stats');
     const stats = response.data;
 
-    document.getElementById('statsCards').innerHTML = `
+    // Only update stats cards if on dashboard view
+    if (currentView === 'dashboard') {
+      const statsCards = document.getElementById('statsCards');
+      if (!statsCards) return;
+      
+      statsCards.innerHTML = `
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-600">
         <div class="flex items-center justify-between">
           <div>
@@ -336,6 +341,7 @@ async function loadStats() {
         </div>
       </div>
     `;
+    }
   } catch (error) {
     console.error('Error loading stats:', error);
   }
@@ -347,9 +353,12 @@ async function loadApplicationNames() {
     const response = await axios.get('/api/applications');
     applicationNames = response.data.map(app => app.application_name);
     
-    const datalist = document.getElementById('applicationList');
-    if (datalist) {
-      datalist.innerHTML = applicationNames.map(name => `<option value="${name}">`).join('');
+    // Only update datalist if on dashboard view
+    if (currentView === 'dashboard') {
+      const datalist = document.getElementById('applicationList');
+      if (datalist) {
+        datalist.innerHTML = applicationNames.map(name => `<option value="${name}">`).join('');
+      }
     }
   } catch (error) {
     console.error('Error loading application names:', error);
@@ -362,16 +371,18 @@ async function loadUsers() {
     const response = await axios.get('/api/users');
     users = response.data;
     
-    // Update the "Assigned To" filter dropdown with users
-    const filterAssignedTo = document.getElementById('filterAssignedTo');
-    if (filterAssignedTo) {
-      const currentValue = filterAssignedTo.value;
-      filterAssignedTo.innerHTML = `
-        <option value="">All Assigned To</option>
-        ${users.map(user => `<option value="${user.id}">${user.full_name}</option>`).join('')}
-      `;
-      // Restore selected value if there was one
-      filterAssignedTo.value = currentValue;
+    // Update the "Assigned To" filter dropdown with users (only if on dashboard view)
+    if (currentView === 'dashboard') {
+      const filterAssignedTo = document.getElementById('filterAssignedTo');
+      if (filterAssignedTo) {
+        const currentValue = filterAssignedTo.value;
+        filterAssignedTo.innerHTML = `
+          <option value="">All Assigned To</option>
+          ${users.map(user => `<option value="${user.id}">${user.full_name}</option>`).join('')}
+        `;
+        // Restore selected value if there was one
+        filterAssignedTo.value = currentValue;
+      }
     }
   } catch (error) {
     console.error('Error loading users:', error);
@@ -391,11 +402,15 @@ async function loadIssues() {
     const response = await axios.get('/api/issues?' + params.toString());
     const issues = response.data;
 
-    const tbody = document.getElementById('issuesTableBody');
-    if (issues.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
-      return;
-    }
+    // Only update issues table if on dashboard view
+    if (currentView === 'dashboard') {
+      const tbody = document.getElementById('issuesTableBody');
+      if (!tbody) return;
+      
+      if (issues.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">No issues found</td></tr>';
+        return;
+      }
 
     tbody.innerHTML = issues.map(issue => `
       <tr class="border-t hover:bg-gray-50">
@@ -438,6 +453,7 @@ async function loadIssues() {
         </td>
       </tr>
     `).join('');
+    }
   } catch (error) {
     console.error('Error loading issues:', error);
   }
