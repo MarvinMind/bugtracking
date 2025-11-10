@@ -7,7 +7,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ## 🌐 Live Demo
 
 **Production URL**: https://renoir-bug-tracker.pages.dev  
-**Latest Deployment**: https://1f1f3913.renoir-bug-tracker.pages.dev  
+**Latest Deployment**: https://a211e3d2.renoir-bug-tracker.pages.dev  
 **GitHub Repository**: https://github.com/RenoirGroup/bugtracking
 
 ## ✨ Features
@@ -393,10 +393,12 @@ This is a demo project. Feel free to fork and customize for your needs!
 ---
 
 **Last Updated**: 2025-01-10  
-**Version**: 1.2.0  
+**Version**: 1.2.1  
 **Status**: ✅ Deployed to Production on Cloudflare Pages
 
-### Recent Updates (v1.2.0)
+### Recent Updates (v1.2.1)
+- ✅ Fixed race condition when switching views quickly - no more null reference errors
+- ✅ Added view checks to prevent updating DOM elements that don't exist
 - ✅ Fixed filtering functionality - all filters now work correctly
 - ✅ Added "Assigned To" filter dropdown
 - ✅ Renamed statuses: "In Progress" → "Needs to Be Tested", "Resolved" → "Completed Testing"
