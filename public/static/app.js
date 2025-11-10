@@ -170,7 +170,7 @@ function showDashboard() {
 
     <div class="container mx-auto px-4 py-8">
       <!-- Statistics Cards -->
-      <div id="statsCards" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div id="statsCards" class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
         <!-- Stats will be loaded here -->
       </div>
 
@@ -302,10 +302,28 @@ async function loadStats() {
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-yellow-500">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-gray-600 text-sm">In Progress</p>
-            <p class="text-3xl font-bold text-yellow-600">${stats.in_progress_issues || 0}</p>
+            <p class="text-gray-600 text-sm">Needs to Be Tested</p>
+            <p class="text-3xl font-bold text-yellow-600">${stats.needs_testing_issues || 0}</p>
           </div>
-          <i class="fas fa-spinner text-4xl text-yellow-500"></i>
+          <i class="fas fa-vial text-4xl text-yellow-500"></i>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Completed Testing</p>
+            <p class="text-3xl font-bold text-blue-600">${stats.completed_testing_issues || 0}</p>
+          </div>
+          <i class="fas fa-check-circle text-4xl text-blue-500"></i>
+        </div>
+      </div>
+      <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-gray-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 text-sm">Closed</p>
+            <p class="text-3xl font-bold text-gray-600">${stats.closed_issues || 0}</p>
+          </div>
+          <i class="fas fa-check-double text-4xl text-gray-500"></i>
         </div>
       </div>
       <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-red-600">
