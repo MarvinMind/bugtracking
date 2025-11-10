@@ -8,7 +8,8 @@ let currentFilter = {
   application_name: '',
   status: '',
   type: '',
-  priority: ''
+  priority: '',
+  assigned_to: ''
 };
 
 // Initialize app
@@ -175,15 +176,15 @@ function showDashboard() {
 
       <!-- Filters and Actions -->
       <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-4">
           <input type="text" id="filterApp" placeholder="Filter by application..." list="applicationList"
             class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
           <datalist id="applicationList"></datalist>
           <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
             <option value="">All Statuses</option>
             <option value="open">Open</option>
-            <option value="in_progress">In Progress</option>
-            <option value="resolved">Resolved</option>
+            <option value="needs_testing">Needs to Be Tested</option>
+            <option value="completed_testing">Completed Testing</option>
             <option value="closed">Closed</option>
           </select>
           <select id="filterType" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
@@ -197,6 +198,10 @@ function showDashboard() {
             <option value="high">High</option>
             <option value="medium">Medium</option>
             <option value="low">Low</option>
+          </select>
+          <select id="filterAssignedTo" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent">
+            <option value="">All Assigned To</option>
+            ${users.map(user => `<option value="${user.id}">${user.full_name}</option>`).join('')}
           </select>
           ${currentUser.permissions.can_create_issues ? `
             <button onclick="showCreateIssueModal()" 
@@ -253,6 +258,10 @@ function showDashboard() {
   });
   document.getElementById('filterPriority').addEventListener('change', (e) => {
     currentFilter.priority = e.target.value;
+    loadIssues();
+  });
+  document.getElementById('filterAssignedTo').addEventListener('change', (e) => {
+    currentFilter.assigned_to = e.target.value;
     loadIssues();
   });
 }
@@ -347,6 +356,7 @@ async function loadIssues() {
     if (currentFilter.status) params.append('status', currentFilter.status);
     if (currentFilter.type) params.append('type', currentFilter.type);
     if (currentFilter.priority) params.append('priority', currentFilter.priority);
+    if (currentFilter.assigned_to) params.append('assigned_to', currentFilter.assigned_to);
 
     const response = await axios.get('/api/issues?' + params.toString());
     const issues = response.data;
@@ -407,11 +417,17 @@ async function loadIssues() {
 function getStatusBadge(status) {
   const colors = {
     open: 'bg-teal-100 text-teal-800',
-    in_progress: 'bg-yellow-100 text-yellow-800',
-    resolved: 'bg-green-100 text-green-800',
+    needs_testing: 'bg-yellow-100 text-yellow-800',
+    completed_testing: 'bg-green-100 text-green-800',
     closed: 'bg-gray-100 text-gray-800'
   };
-  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${colors[status]}">${status.replace('_', ' ')}</span>`;
+  const labels = {
+    open: 'Open',
+    needs_testing: 'Needs to Be Tested',
+    completed_testing: 'Completed Testing',
+    closed: 'Closed'
+  };
+  return `<span class="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-lg ${colors[status]}">${labels[status] || status}</span>`;
 }
 
 function getPriorityBadge(priority) {
@@ -670,9 +686,9 @@ async function showEditIssueModal(issueId) {
               </label>
               ${issue.screenshot ? `
                 <div class="mb-2">
-                  <div class="relative inline-block">
-                    <img src="${issue.screenshot}" class="max-w-xs max-h-32 rounded border border-gray-300" alt="Current screenshot">
-                    <span class="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">Current</span>
+                  <div class="relative inline-block cursor-pointer" onclick="showScreenshot(${issue.id})" title="Click to view full size">
+                    <img src="${issue.screenshot}" class="max-w-xs max-h-32 rounded border border-gray-300 hover:border-green-600 transition" alt="Current screenshot">
+                    <span class="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded">Current - Click to view full size</span>
                   </div>
                 </div>
               ` : '<p class="text-sm text-gray-500 mb-2">No screenshot currently attached</p>'}
@@ -686,8 +702,8 @@ async function showEditIssueModal(issueId) {
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
                 <select id="edit_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
                   <option value="open" ${issue.status === 'open' ? 'selected' : ''}>Open</option>
-                  <option value="in_progress" ${issue.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
-                  <option value="resolved" ${issue.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+                  <option value="needs_testing" ${issue.status === 'needs_testing' ? 'selected' : ''}>Needs to Be Tested</option>
+                  <option value="completed_testing" ${issue.status === 'completed_testing' ? 'selected' : ''}>Completed Testing</option>
                   <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>Closed</option>
                 </select>
               </div>
@@ -849,6 +865,10 @@ function showAdminPanel() {
           <button onclick="showAdminPanel()" 
             class="px-4 py-2 text-green-600 border-b-2 border-green-600 font-semibold">
             <i class="fas fa-users-cog mr-2"></i>Admin
+          </button>
+          <button onclick="showProfileSettings()" 
+            class="px-4 py-2 text-gray-600 hover:text-green-600 transition">
+            <i class="fas fa-user-cog mr-2"></i>Profile
           </button>
           <span class="text-sm text-gray-600"><i class="fas fa-user mr-2 text-green-600"></i>${currentUser.full_name}</span>
           <button onclick="handleLogout()" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700 transition">

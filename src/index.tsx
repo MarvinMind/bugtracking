@@ -382,7 +382,7 @@ app.get('/api/applications', authMiddleware, async (c) => {
 
 // Get all issues with filters
 app.get('/api/issues', authMiddleware, async (c) => {
-  const { application_name, status, type, priority } = c.req.query()
+  const { application_name, status, type, priority, assigned_to } = c.req.query()
   
   let query = `
     SELECT 
@@ -417,6 +417,11 @@ app.get('/api/issues', authMiddleware, async (c) => {
   if (priority) {
     query += ` AND i.priority = ?`
     params.push(priority)
+  }
+  
+  if (assigned_to) {
+    query += ` AND i.assigned_to = ?`
+    params.push(assigned_to)
   }
   
   query += ` ORDER BY i.created_at DESC`
