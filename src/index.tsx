@@ -492,7 +492,7 @@ app.post('/api/issues', authMiddleware, async (c) => {
 app.put('/api/issues/:id', authMiddleware, async (c) => {
   const id = c.req.param('id')
   const user = c.get('user')
-  const { application_name, affected_area, title, description, status, priority, assigned_to, expected_completion_date, screenshot } = await c.req.json()
+  const { application_name, affected_area, title, description, type, status, priority, assigned_to, expected_completion_date, screenshot } = await c.req.json()
   
   // Check permissions
   const userData = await c.env.DB.prepare(`SELECT can_edit_issues, can_resolve_issues FROM users WHERE id = ?`).bind(user.user_id).first()
@@ -503,15 +503,15 @@ app.put('/api/issues/:id', authMiddleware, async (c) => {
   }
   
   // Check if user can resolve (when changing status to resolved or closed)
-  if ((status === 'resolved' || status === 'closed') && userData?.can_resolve_issues !== 1) {
+  if ((status === 'completed_testing' || status === 'closed') && userData?.can_resolve_issues !== 1) {
     return c.json({ error: 'You do not have permission to resolve/close issues' }, 403)
   }
   
   await c.env.DB.prepare(`
     UPDATE issues 
-    SET application_name = ?, affected_area = ?, title = ?, description = ?, status = ?, priority = ?, assigned_to = ?, expected_completion_date = ?, screenshot = ?, updated_at = datetime('now')
+    SET application_name = ?, affected_area = ?, title = ?, description = ?, type = ?, status = ?, priority = ?, assigned_to = ?, expected_completion_date = ?, screenshot = ?, updated_at = datetime('now')
     WHERE id = ?
-  `).bind(application_name, affected_area || null, title, description, status, priority, assigned_to || null, expected_completion_date || null, screenshot || null, id).run()
+  `).bind(application_name, affected_area || null, title, description, type, status, priority, assigned_to || null, expected_completion_date || null, screenshot || null, id).run()
   
   return c.json({ success: true })
 })

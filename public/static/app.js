@@ -743,7 +743,14 @@ async function showEditIssueModal(issueId) {
               <p class="text-xs text-gray-500 mt-1">Upload a new screenshot to replace the existing one (max 2MB)</p>
               <div id="editScreenshotPreview" class="mt-2"></div>
             </div>
-            <div class="grid grid-cols-4 gap-4">
+            <div class="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Type *</label>
+                <select id="edit_type" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                  <option value="bug" ${issue.type === 'bug' ? 'selected' : ''}>Bug</option>
+                  <option value="feature" ${issue.type === 'feature' ? 'selected' : ''}>Feature</option>
+                </select>
+              </div>
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
                 <select id="edit_status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -753,6 +760,8 @@ async function showEditIssueModal(issueId) {
                   <option value="closed" ${issue.status === 'closed' ? 'selected' : ''}>Closed</option>
                 </select>
               </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
               <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Priority *</label>
                 <select id="edit_priority" required class="w-full px-4 py-2 border border-gray-300 rounded-lg">
@@ -848,6 +857,7 @@ async function handleEditIssue(e) {
     affected_area: document.getElementById('edit_affected_area').value,
     title: document.getElementById('edit_title').value,
     description: document.getElementById('edit_description').value,
+    type: document.getElementById('edit_type').value,
     status: document.getElementById('edit_status').value,
     priority: document.getElementById('edit_priority').value,
     assigned_to: document.getElementById('edit_assigned_to').value || null,
