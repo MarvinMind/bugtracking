@@ -6,9 +6,9 @@ A comprehensive bug and feature tracking application built with Hono framework a
 
 ## 🌐 Live Demo
 
-**Production URL**: https://renoir-bug-tracker.pages.dev  
-**Latest Deployment**: https://75692d74.renoir-bug-tracker.pages.dev  
-**GitHub Repository**: https://github.com/RenoirGroup/bugtracking
+**Production URL**: https://renoir-bug-tracker-6xk.pages.dev  
+**Latest Deployment**: https://63f9c23a.renoir-bug-tracker-6xk.pages.dev  
+**GitHub Repository**: https://github.com/MarvinMind/bugtracking
 
 ## ✨ Features
 
@@ -324,12 +324,29 @@ pm2 delete webapp
 
 ### Production Deployment
 
+**Automated Deployment (Recommended):**
 ```bash
-# Apply migrations to production database
+# Deploy to production (uses custom deploy.sh script)
+npm run deploy
+
+# The deploy.sh script:
+# - Builds the project
+# - Creates deployment package
+# - Deploys via Cloudflare API (bypasses wrangler account issues)
+# - Shows deployment URL
+
+# Note: Requires CLOUDFLARE_API_TOKEN environment variable
+# Already set in this environment: export CLOUDFLARE_API_TOKEN='your-token'
+```
+
+**Manual Deployment (if needed):**
+```bash
+# Apply migrations to production database (one-time setup)
 npm run db:migrate:prod
 
-# Deploy to Cloudflare Pages
-npm run deploy:prod
+# Build and deploy
+npm run build
+./deploy.sh
 ```
 
 ## 🔒 Security Notes
