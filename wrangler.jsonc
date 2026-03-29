@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "renoir-bug-tracker",
+  "name": "bugs2fixes",
   "compatibility_date": "2025-10-29",
   "pages_build_output_dir": "./dist",
   "compatibility_flags": [

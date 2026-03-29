@@ -9,7 +9,7 @@ set -e
 echo "🚀 Starting deployment to Cloudflare Pages..."
 
 # Configuration
-PROJECT_NAME="renoir-bug-tracker"
+PROJECT_NAME="bugs2fixes"
 ACCOUNT_ID="c1eced11930d6d091108da03bb14dfae"
 BRANCH="${1:-main}"
 
@@ -52,7 +52,7 @@ if [ "$SUCCESS" = "true" ]; then
     
     # Production URL
     if [ "$BRANCH" = "main" ]; then
-        echo "🌐 Production URL: https://$PROJECT_NAME-6xk.pages.dev"
+        echo "🌐 Production URL: https://$PROJECT_NAME.pages.dev"
     fi
 else
     ERROR=$(echo $RESPONSE | jq -r '.errors[0].message // "Unknown error"')

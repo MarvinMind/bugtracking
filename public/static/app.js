@@ -30,10 +30,9 @@ function showLogin() {
     <div class="min-h-screen flex items-center justify-center px-4">
       <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div class="text-center mb-6">
-          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-20 mx-auto mb-4">
-          <div class="flex items-center justify-center mb-2">
-            <i class="fas fa-bug text-green-600 text-3xl mr-3"></i>
-            <h1 class="text-2xl font-bold text-gray-900">Issue Tracker</h1>
+          <div class="flex items-center justify-center mb-4">
+            <i class="fas fa-bug text-green-600 text-4xl mr-3"></i>
+            <h1 class="text-3xl font-bold text-gray-900">bugs2fixes</h1>
           </div>
           <p class="text-gray-600 mt-2">Track bugs and features across your applications</p>
         </div>
@@ -140,9 +139,9 @@ function showDashboard() {
     <nav class="bg-white shadow-md border-b-4 border-green-600">
       <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
+          <i class="fas fa-bug text-green-600 text-4xl"></i>
           <div class="border-l-2 border-gray-300 pl-3">
-            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+            <h1 class="text-xl font-bold text-gray-900">bugs2fixes</h1>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -908,9 +907,9 @@ function showAdminPanel() {
     <nav class="bg-white shadow-md border-b-4 border-green-600">
       <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
+          <i class="fas fa-bug text-green-600 text-4xl"></i>
           <div class="border-l-2 border-gray-300 pl-3">
-            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+            <h1 class="text-xl font-bold text-gray-900">bugs2fixes</h1>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -1295,9 +1294,9 @@ function showProfileSettings() {
     <nav class="bg-white shadow-md border-b-4 border-green-600">
       <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-3">
-          <img src="/static/logo-light.jpg" alt="Renoir Consulting" class="h-16">
+          <i class="fas fa-bug text-green-600 text-4xl"></i>
           <div class="border-l-2 border-gray-300 pl-3">
-            <h1 class="text-xl font-bold text-gray-900">Issue Tracker</h1>
+            <h1 class="text-xl font-bold text-gray-900">bugs2fixes</h1>
           </div>
         </div>
         <div class="flex items-center space-x-4">

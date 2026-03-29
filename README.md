@@ -1,13 +1,10 @@
-# Renoir Consulting - Issue Tracker
+# bugs2fixes - Issue Tracker
 
-A comprehensive bug and feature tracking application built with Hono framework and Cloudflare D1 database, designed for teams of 4-5 users to track issues across multiple applications.
-
-**Branded for Renoir Consulting** with custom logo, color scheme, and design guidelines.
+A comprehensive bug and feature tracking application built with Hono framework and Cloudflare D1 database, designed for teams to track issues across multiple applications.
 
 ## 🌐 Live Demo
 
-**Production URL**: https://renoir-bug-tracker-6xk.pages.dev  
-**Latest Deployment**: https://63f9c23a.renoir-bug-tracker-6xk.pages.dev  
+**Production URL**: https://bugs2fixes.pages.dev  
 **GitHub Repository**: https://github.com/MarvinMind/bugtracking
 
 ## ✨ Features
