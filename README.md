@@ -5,6 +5,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 ## 🌐 Live Demo
 
 **Production URL**: https://bugs2fixes.pages.dev  
+**Latest Deployment**: https://38281d65.bugs2fixes.pages.dev  
 **GitHub Repository**: https://github.com/MarvinMind/bugtracking
 
 ## ✨ Features
@@ -185,7 +186,7 @@ A comprehensive bug and feature tracking application built with Hono framework a
 - SQLite-based globally distributed database
 - Stores all user data, applications, issues, and sessions
 - Local development uses `.wrangler/state/v3/d1` for testing
-- Production uses Cloudflare D1 (database ID: `0f315142-4927-4f6b-9951-68b6006a0b25`)
+- Production uses Cloudflare D1 (database ID: `97bef0b6-3820-45a2-8575-2b618330472d`)
 - Database name: `renoir-bug-tracker-production`
 
 ### Data Flow
@@ -323,8 +324,11 @@ pm2 delete webapp
 
 **Automated Deployment (Recommended):**
 ```bash
-# Deploy to production (uses custom deploy.sh script)
+# Deploy to production using Wrangler
 npm run deploy
+
+# Or deploy directly with wrangler
+npm run deploy:wrangler
 
 # The deploy.sh script:
 # - Builds the project
