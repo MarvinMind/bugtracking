@@ -368,31 +368,25 @@ npm run db:console:local
 npm run db:console:prod
 ```
 
-## 🎨 Branding
-
-The application follows Renoir Consulting's brand guidelines:
+## 🎨 Design
 
 **Color Palette:**
 - Primary CTA: Green `#7CB342` (bg-green-600)
 - Secondary CTA: Teal `#00ACC1` (bg-teal-600)
-- Background: Gradient from teal-50 to green-100
+- Background: Light gray (bg-gray-100)
 - Cards: White with shadow-md
 - Text: Gray-900 (primary), Gray-600 (secondary)
 
 **Design Elements:**
 - Border Radius: 8px (rounded-lg)
 - Shadows: shadow-md for elevation
-- Logo: Displayed at h-16 (header), h-20 (login/hero)
+- Icon: Font Awesome bug icon (fas fa-bug)
 - Border Accents: Green and teal border highlights
 
-**Logos:**
-- Light logo: `/static/logo-light.jpg` (colored, for white backgrounds)
-- Dark logo: `/static/logo-dark.jpg` (white text, for dark backgrounds)
-
-## 🎨 Production Data
+## 🔐 Production Data
 
 The production application has:
-- **Admin User**: username `admin`, email `keith.symondson@renoirgroup.com`
+- **Admin User**: username `admin`, password `password123`
 - **Full Permissions**: Admin has all permissions enabled
 - **Clean Database**: No sample issues (ready for real data)
 
@@ -406,16 +400,18 @@ This is a demo project. Feel free to fork and customize for your needs!
 
 ---
 
-**Last Updated**: 2025-01-10  
-**Version**: 1.2.2  
+**Last Updated**: 2025-03-29  
+**Version**: 2.0.0  
 **Status**: ✅ Deployed to Production on Cloudflare Pages
 
-### Recent Updates (v1.2.2)
+### Recent Updates (v2.0.0 - Rebranded to bugs2fixes)
+- ✅ **Complete rebrand** - Changed from "Renoir" to "bugs2fixes"
+- ✅ **Removed logo dependencies** - Now using Font Awesome bug icon
+- ✅ **Simplified branding** - Clean, professional look without company-specific branding
+- ✅ **Automated deployment** - Custom deploy.sh script for one-command deployments
 - ✅ **Added Type field to edit modal** - Can now change issue type (Bug/Feature) when editing
 - ✅ **Fixed backend to support type updates** - Backend now accepts and saves type changes
-- ✅ **Fixed permission check** - Updated status permission check for new status names
 - ✅ Fixed race condition when switching views quickly - no more null reference errors
-- ✅ Added view checks to prevent updating DOM elements that don't exist
 - ✅ Fixed filtering functionality - all filters now work correctly
 - ✅ Added "Assigned To" filter dropdown
 - ✅ Renamed statuses: "In Progress" → "Needs to Be Tested", "Resolved" → "Completed Testing"
