@@ -7,7 +7,7 @@
     "build": "vite build",
     "preview": "wrangler pages dev dist",
     "deploy": "./deploy.sh",
-    "deploy:prod": "./deploy.sh main",
+    "deploy:wrangler": "npm run build && wrangler pages deploy dist --project-name bugs2fixes --commit-dirty=true",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
     "db:migrate:local": "wrangler d1 migrations apply webapp-production --local",
     "db:migrate:prod": "wrangler d1 migrations apply webapp-production",
@@ -19,8 +19,7 @@
     "hono": "^4.10.3"
   },
   "devDependencies": {
-    "@hono/vite-build": "^1.2.0",
-    "@hono/vite-dev-server": "^0.18.2",
+    "@hono/vite-cloudflare-pages": "^0.4.3",
     "vite": "^6.3.5",
     "wrangler": "^4.4.0"
   }

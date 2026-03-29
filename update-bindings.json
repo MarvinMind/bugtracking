@@ -1,0 +1,22 @@
+{
+  "deployment_configs": {
+    "production": {
+      "d1_databases": {
+        "DB": {
+          "id": "97bef0b6-3820-45a2-8575-2b618330472d"
+        }
+      },
+      "compatibility_date": "2025-10-29",
+      "compatibility_flags": ["nodejs_compat"]
+    },
+    "preview": {
+      "d1_databases": {
+        "DB": {
+          "id": "97bef0b6-3820-45a2-8575-2b618330472d"
+        }
+      },
+      "compatibility_date": "2025-10-29",
+      "compatibility_flags": ["nodejs_compat"]
+    }
+  }
+}
